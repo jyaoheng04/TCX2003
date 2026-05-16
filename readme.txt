@@ -11,7 +11,7 @@ polyclinic-app/
 ├── app.py                         # Main Flask application file used to start the server
 ├── database.db                    # MySQL database storing application data
 │
-├── routes/                        # Application route modules (Flask Blueprints / views) (IGNORE THIS, have not implement anything yet everything is route through app.py)
+├── routes/                        # Application route modules (Flask Blueprints / views) (have not implement anything yet)
 │   ├── admin.py                   # Handles admin management routes and system controls
 │   ├── auth.py                    # Handles login, logout, and authentication logic
 │   ├── doctor.py                  # Handles doctor dashboard, consultations, and records
