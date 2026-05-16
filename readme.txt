@@ -3,7 +3,7 @@ The remaining functionality should be designed by you, but it should still follo
 If any data is required to be accessed or displayed in other role-specific pages outside your own scope, please inform the respective person in charge.
 
 Important!! -> Create your own branch, then clone the main branch into your branch and carry out all development work within your assigned branch.
-
+Currently you need to do url manipulation to access the page you need to work on. Take a look at the app.py to see the url.
 polyclinic-app/
 │
 ├── .venv/                         # Python virtual environment containing installed dependencies
