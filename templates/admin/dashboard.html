@@ -1,0 +1,75 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+
+<h2 class="dashboard-title">IT Admin Control Center</h2>
+
+<!-- KPI STRIP (TOP SUMMARY) -->
+<div class="kpi-strip">
+
+    <div class="kpi-card">
+        <h4>Total Users</h4>
+        <p id="total_users">0</p>
+    </div>
+
+    <div class="kpi-card">
+        <h4>Active Users</h4>
+        <p id="active_users">0</p>
+    </div>
+
+    <div class="kpi-card">
+        <h4>Failed Logins</h4>
+        <p id="failed_logins">0</p>
+    </div>
+
+    <div class="kpi-card danger">
+        <h4>Security Alerts</h4>
+        <p id="security_alerts">0</p>
+    </div>
+
+</div>
+
+<!-- MAIN DASHBOARD GRID -->
+<div class="dashboard-main">
+
+    <!-- LEFT: BIG CHART -->
+    <div class="panel large">
+        <h3>📊 System Activity Overview</h3>
+        <canvas id="activityChart"></canvas>
+    </div>
+
+    <!-- RIGHT: SECURITY CHART -->
+    <div class="panel">
+        <h3>🔐 Security Events</h3>
+        <canvas id="securityChart"></canvas>
+    </div>
+
+</div>
+
+<!-- SYSTEM STATUS ROW -->
+<div class="status-row">
+
+    <div class="status-card">
+        <h4>Server</h4>
+        <p>🟢 Online</p>
+    </div>
+
+    <div class="status-card">
+        <h4>Database</h4>
+        <p>🟢 Connected</p>
+    </div>
+
+    <div class="status-card">
+        <h4>API</h4>
+        <p>🟢 Stable</p>
+    </div>
+
+</div>
+
+{% endblock %}

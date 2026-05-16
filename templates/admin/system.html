@@ -1,0 +1,61 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="admin-title">System Health Monitor</h2>
+
+<div class="admin-health-grid">
+
+    <!-- SERVER STATUS -->
+    <div class="admin-health-card">
+        <h3>Server Status</h3>
+        <p class="status ok">🟢 Online</p>
+        <p>Uptime: 99.98%</p>
+        <p>Response Time: 120ms</p>
+    </div>
+
+    <!-- DATABASE -->
+    <div class="admin-health-card">
+        <h3>Database</h3>
+        <p class="status ok">🟢 Connected</p>
+        <p>Query Latency: 18ms</p>
+        <p>Active Connections: 12</p>
+    </div>
+
+    <!-- API SERVICES -->
+    <div class="admin-health-card">
+        <h3>API Services</h3>
+        <p class="status ok">🟢 Running</p>
+        <p>Requests/min: 340</p>
+        <p>Error Rate: 0.2%</p>
+    </div>
+
+    <!-- SYSTEM RESOURCES -->
+    <div class="admin-health-card">
+        <h3>System Resources</h3>
+        <p>CPU Usage: 42%</p>
+        <p>Memory Usage: 68%</p>
+        <p>Disk Usage: 55%</p>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="admin-health-card alert">
+        <h3>System Alerts</h3>
+        <p>⚠ None critical</p>
+        <p>Last warning: High memory spike (resolved)</p>
+    </div>
+
+    <!-- UPTIME -->
+    <div class="admin-health-card">
+        <h3>Uptime Tracking</h3>
+        <p>System Uptime: 14 days</p>
+        <p>Last Restart: 02 May 2026</p>
+    </div>
+
+</div>
+
+{% endblock %}

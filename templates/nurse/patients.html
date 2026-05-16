@@ -1,0 +1,99 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nurse.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="nurse-title">Patient Care Tasks</h2>
+
+<div class="nurse-grid">
+
+    <!-- CARD 1 -->
+    <div class="nurse-card">
+
+        <div class="nurse-card-header">
+            <h4 class="nurse-patient-name">John Tan</h4>
+            <span class="nurse-status nurse-status--done">
+                Completed
+            </span>
+        </div>
+
+        <p>
+            <strong>Service:</strong>
+            Blood Test
+        </p>
+
+        <p>
+            <strong>Notes:</strong>
+            Fasting required
+        </p>
+
+        <div class="nurse-meta">
+            <span class="nurse-tag nurse-tag--low">
+                Routine
+            </span>
+        </div>
+
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="nurse-card">
+
+        <div class="nurse-card-header">
+            <h4 class="nurse-patient-name">Mary Lee</h4>
+            <span class="nurse-status nurse-status--pending">
+                Pending
+            </span>
+        </div>
+
+        <p>
+            <strong>Service:</strong>
+            Vaccination
+        </p>
+
+        <p>
+            <strong>Notes:</strong>
+            2nd dose COVID booster
+        </p>
+
+        <div class="nurse-meta">
+            <span class="nurse-tag nurse-tag--high">
+                High Priority
+            </span>
+        </div>
+
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="nurse-card">
+
+        <div class="nurse-card-header">
+            <h4 class="nurse-patient-name">Ali Khan</h4>
+            <span class="nurse-status nurse-status--progress">
+                In Progress
+            </span>
+        </div>
+
+        <p>
+            <strong>Service:</strong>
+            Urine Test
+        </p>
+
+        <p>
+            <strong>Notes:</strong>
+            Collect morning sample
+        </p>
+
+        <div class="nurse-meta">
+            <span class="nurse-tag nurse-tag--medium">
+                Standard
+            </span>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

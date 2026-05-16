@@ -1,0 +1,87 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="patient-title">My Appointments</h2>
+
+<a href="/patient/create" class="patient-btn-link">
+    + Book New Appointment
+</a>
+
+<div class="patient-grid">
+
+    <!-- CARD -->
+    <div class="patient-card">
+
+        <div class="patient-card-header">
+            <div>
+                <h4 class="patient-date">20 May 2026</h4>
+                <p class="patient-doctor">Dr Tan</p>
+            </div>
+
+            <span class="patient-status patient-status--pending">
+                Pending
+            </span>
+        </div>
+
+        <div class="patient-info">
+            <p><strong>Type:</strong> Consultation</p>
+            <p><strong>Time:</strong> 10:30 AM</p>
+            <p><strong>Reason:</strong> Fever & headache</p>
+        </div>
+
+        <div class="patient-actions">
+
+            <button class="patient-btn patient-btn--edit">
+                Reschedule
+            </button>
+
+            <button class="patient-btn patient-btn--delete">
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- CARD -->
+    <div class="patient-card">
+
+        <div class="patient-card-header">
+            <div>
+                <h4 class="patient-date">25 May 2026</h4>
+                <p class="patient-doctor">Dr Lim</p>
+            </div>
+
+            <span class="patient-status patient-status--confirmed">
+                Confirmed
+            </span>
+        </div>
+
+        <div class="patient-info">
+            <p><strong>Type:</strong> Vaccination</p>
+            <p><strong>Time:</strong> 2:00 PM</p>
+            <p><strong>Reason:</strong> Booster dose</p>
+        </div>
+
+        <div class="patient-actions">
+
+            <button class="patient-btn patient-btn--edit">
+                Reschedule
+            </button>
+
+            <button class="patient-btn patient-btn--delete">
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

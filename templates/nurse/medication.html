@@ -1,0 +1,189 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nurse.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="nurse-med-title">Medication Dispensing Queue</h2>
+
+<div class="nurse-med-container">
+
+    <!-- CARD 1 -->
+    <div class="nurse-med-card">
+
+        <div class="nurse-med-header">
+
+            <div>
+                <h3 class="nurse-med-patient">John Tan</h3>
+                <p class="nurse-med-doctor">Prescribed by Dr. Lim</p>
+            </div>
+
+            <span class="nurse-med-status nurse-med-status--ready">
+                Ready
+            </span>
+
+        </div>
+
+        <!-- MEDICAL INFO -->
+        <div class="nurse-med-body">
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Medication</span>
+                <p>Paracetamol 500mg</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Dosage</span>
+                <p>2 Tablets</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Schedule</span>
+                <p>2:00 PM</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Instructions</span>
+                <p>After food</p>
+            </div>
+
+        </div>
+
+        <!-- MC + BILLING -->
+        <div class="nurse-med-extra">
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Medical Certificate</span>
+                <p>Yes - 2 Days</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Bill Amount</span>
+                <p>$18.00</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Payment</span>
+                <p>Paid (Cash)</p>
+            </div>
+
+        </div>
+
+        <!-- SIGN OFF -->
+        <div class="nurse-med-signoff">
+
+            <p>
+                <strong>Dispensed By:</strong> Nurse Kelly
+            </p>
+
+            <p>
+                <strong>Status:</strong> Pending Collection
+            </p>
+
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="nurse-med-actions">
+
+            <button class="btn-collect">
+                Mark as Dispensed
+            </button>
+
+            <button class="btn-view">
+                View Prescription
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="nurse-med-card">
+
+        <div class="nurse-med-header">
+
+            <div>
+                <h3 class="nurse-med-patient">Mary Lee</h3>
+                <p class="nurse-med-doctor">Prescribed by Dr. Tan</p>
+            </div>
+
+            <span class="nurse-med-status nurse-med-status--progress">
+                In Progress
+            </span>
+
+        </div>
+
+        <div class="nurse-med-body">
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Medication</span>
+                <p>Antibiotics</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Dosage</span>
+                <p>1 Capsule</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Schedule</span>
+                <p>6:00 PM</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Instructions</span>
+                <p>Complete full course</p>
+            </div>
+
+        </div>
+
+        <div class="nurse-med-extra">
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Medical Certificate</span>
+                <p>No MC Issued</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Bill Amount</span>
+                <p>$25.00</p>
+            </div>
+
+            <div class="nurse-med-box">
+                <span class="nurse-med-label">Payment</span>
+                <p>Unpaid</p>
+            </div>
+
+        </div>
+
+        <div class="nurse-med-signoff">
+
+            <p>
+                <strong>Dispensed By:</strong> Pending
+            </p>
+
+            <p>
+                <strong>Status:</strong> Awaiting Preparation
+            </p>
+
+        </div>
+
+        <div class="nurse-med-actions">
+
+            <button class="btn-prepare">
+                Prepare Medication
+            </button>
+
+            <button class="btn-view">
+                View Details
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

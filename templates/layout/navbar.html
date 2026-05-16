@@ -1,0 +1,20 @@
+<nav class="navbar">
+
+    <div class="logo">Polyclinic OS</div>
+
+    <div class="nav-right">
+
+        <span class="status">
+            <span class="dot"></span>
+            {% if system_status %}
+                {{ system_status }}
+            {% else %}
+                Online
+            {% endif %}
+        </span>
+
+        <a href="/logout" class="logout">Logout</a>
+
+    </div>
+
+</nav>

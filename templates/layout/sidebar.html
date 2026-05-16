@@ -1,0 +1,93 @@
+<aside class="sidebar">
+
+    {% if role == "doctor" %}
+
+        <a href="/doctor/dashboard"
+           class="{% if active_page == 'dashboard' %}active{% endif %}">
+            Dashboard
+        </a>
+
+        <a href="/doctor/consultations"
+           class="{% if active_page == 'consultations' %}active{% endif %}">
+            Consultations
+        </a>
+
+        <a href="/doctor/create"
+           class="{% if active_page == 'create' %}active{% endif %}">
+            New Consultation
+        </a>
+
+    {% elif role == "nurse" %}
+
+        <a href="/nurse/dashboard"
+           class="{% if active_page == 'dashboard' %}active{% endif %}">
+            Dashboard
+        </a>
+
+        <a href="/nurse/patients"
+           class="{% if active_page == 'patients' %}active{% endif %}">
+            Patients
+        </a>
+
+        <a href="/nurse/clinic_op"
+           class="{% if active_page == 'Clinic Operation' %}active{% endif %}">
+            Clinic Operations
+        </a>
+
+        <a href="/nurse/medication"
+           class="{% if active_page == 'medication' %}active{% endif %}">
+            Medication
+        </a>
+
+    {% elif role == "admin" %}
+
+        <a href="/admin/dashboard"
+           class="{% if active_page == 'dashboard' %}active{% endif %}">
+            Dashboard
+        </a>
+
+        <a href="/admin/users"
+           class="{% if active_page == 'users' %}active{% endif %}">
+            User Management
+        </a>
+
+        <a href="/admin/security"
+           class="{% if active_page == 'security' %}active{% endif %}">
+            System Security
+        </a>
+
+        <a href="/admin/system"
+           class="{% if active_page == 'system' %}active{% endif %}">
+            System Health
+        </a>
+
+        <a href="/admin/logs"
+           class="{% if active_page == 'logs' %}active{% endif %}">
+            Audit Logs
+        </a>
+
+    {% elif role == "patient" %}
+
+        <a href="/patient/dashboard"
+           class="{% if active_page == 'dashboard' %}active{% endif %}">
+            Dashboard
+        </a>
+
+        <a href="/patient/appointments"
+           class="{% if active_page == 'appointments' %}active{% endif %}">
+            Appointments
+        </a>
+
+        <a href="/patient/records"
+           class="{% if active_page == 'records' %}active{% endif %}">
+            Medical Records
+        </a>
+
+        <a href="/patient/profile"
+           class="{% if active_page == 'profile' %}active{% endif %}">
+            Profile
+        </a>
+
+    {% endif %}
+
+</aside>

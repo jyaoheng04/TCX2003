@@ -1,0 +1,62 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="patient-title">Book Appointment</h2>
+
+<div class="patient-form-card">
+
+    <form class="patient-form">
+
+        <div class="patient-field">
+            <label>Doctor</label>
+            <select>
+                <option>Select Doctor</option>
+                <option>Dr Tan</option>
+                <option>Dr Lim</option>
+            </select>
+        </div>
+
+        <div class="patient-field">
+            <label>Appointment Type</label>
+            <select>
+                <option>Consultation</option>
+                <option>Follow-up</option>
+                <option>Vaccination</option>
+            </select>
+        </div>
+
+        <div class="patient-grid-2">
+
+            <div class="patient-field">
+                <label>Date</label>
+                <input type="date">
+            </div>
+
+            <div class="patient-field">
+                <label>Time</label>
+                <input type="time">
+            </div>
+
+        </div>
+
+        <div class="patient-field">
+            <label>Reason for Visit</label>
+            <input type="text" placeholder="e.g. fever, cough, headache">
+        </div>
+
+        <div class="patient-actions">
+            <button type="button" class="patient-btn patient-btn--primary">
+                Confirm Booking
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

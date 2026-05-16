@@ -1,0 +1,28 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="title">Edit Consultation</h2>
+
+<div class="card">
+
+<form>
+
+    <input type="text" value="John Tan">
+    <input type="text" value="Fever">
+    <input type="text" value="Viral Infection">
+    <input type="text" value="Paracetamol">
+
+    <textarea>Doctor notes...</textarea>
+
+    <button type="button">Update</button>
+
+</form>
+
+</div>
+
+{% endblock %}

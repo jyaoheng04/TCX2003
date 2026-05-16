@@ -1,0 +1,144 @@
+/* =========================
+   2026 CLINICAL BASE SYSTEM
+   CLEAN • MODERN • MEDICAL UI
+========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #2563eb;
+    --accent: #14b8a6;
+    --bg: #f6f8fc;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --text: #0f172a;
+    --muted: #64748b;
+}
+
+/* BASE */
+body {
+    font-family: "Figtree", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* REMOVE HEAVY BACKGROUNDS */
+body::before {
+    display: none;
+}
+
+/* LAYOUT */
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* =========================
+   INPUTS (CLEAN MEDICAL UI)
+========================= */
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 14px;
+    transition: 0.15s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* =========================
+   BUTTONS (SIMPLE + MODERN)
+========================= */
+
+button {
+    width: 100%;
+    padding: 12px 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s ease;
+}
+
+button:hover {
+    opacity: 0.92;
+}
+
+/* =========================
+   LOGIN (CLEAN PROFESSIONAL)
+========================= */
+
+.login-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-shell {
+    display: flex;
+    width: 900px;
+    height: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* LEFT SIDE IMAGE */
+.login-visual {
+    flex: 1;
+    background: url("/static/images/healthcare.jpg");
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.login-visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(253, 253, 255, 0.219);
+}
+
+/* RIGHT PANEL */
+.login-panel {
+    flex: 1;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-panel h1 {
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.login-panel p {
+    color: var(--muted);
+    margin-bottom: 20px;
+}
+
+/* =========================
+   UTILITY TEXT
+========================= */
+
+.title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}

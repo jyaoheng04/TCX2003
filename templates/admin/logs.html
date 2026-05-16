@@ -1,0 +1,84 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="admin-title">Audit Logs</h2>
+
+<!-- FILTER BAR -->
+<div class="admin-filter-bar">
+
+    <select>
+        <option>All Users</option>
+        <option>Doctors</option>
+        <option>Nurses</option>
+        <option>Admins</option>
+    </select>
+
+    <select>
+        <option>All Actions</option>
+        <option>Login</option>
+        <option>Create</option>
+        <option>Update</option>
+        <option>Delete</option>
+    </select>
+
+    <input type="date">
+
+    <button class="admin-btn-primary">Filter</button>
+
+</div>
+
+<!-- LOG LIST -->
+<div class="admin-log-card">
+
+    <div class="admin-log-item">
+        <div class="log-main">
+            <p><strong>Dr Tan</strong> (Doctor)</p>
+            <span class="log-action login">Login</span>
+        </div>
+        <div class="log-meta">
+            <p>IP: 192.168.1.10 • Chrome • Singapore</p>
+            <span>16 May 2026 • 10:32 AM</span>
+        </div>
+    </div>
+
+    <div class="admin-log-item">
+        <div class="log-main">
+            <p><strong>Nurse Mary</strong> (Nurse)</p>
+            <span class="log-action update">Update</span>
+        </div>
+        <div class="log-meta">
+            <p>Updated Patient #102 Prescription</p>
+            <span>16 May 2026 • 10:40 AM</span>
+        </div>
+    </div>
+
+    <div class="admin-log-item">
+        <div class="log-main">
+            <p><strong>Admin</strong></p>
+            <span class="log-action create">Create</span>
+        </div>
+        <div class="log-meta">
+            <p>Created new user: Dr Lim</p>
+            <span>16 May 2026 • 11:00 AM</span>
+        </div>
+    </div>
+
+    <div class="admin-log-item">
+        <div class="log-main">
+            <p><strong>System</strong></p>
+            <span class="log-action system">Backup</span>
+        </div>
+        <div class="log-meta">
+            <p>Automated database backup completed</p>
+            <span>16 May 2026 • 2:00 AM</span>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

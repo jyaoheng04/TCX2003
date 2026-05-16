@@ -1,0 +1,59 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nurse.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="nurse-title">Clinic Operations Overview</h2>
+
+<div class="nurse-grid">
+
+    <!-- CONSULT ROOMS -->
+    <div class="nurse-card">
+
+        <h3 class="nurse-section-title">Consultation Rooms</h3>
+
+        <p><strong>Room 1:</strong> Dr. Lim (In Use)</p>
+        <p><strong>Room 2:</strong> Dr. Tan (Available)</p>
+        <p><strong>Room 3:</strong> Dr. Ong (In Use)</p>
+
+    </div>
+
+    <!-- TREATMENT ROOMS -->
+    <div class="nurse-card">
+
+        <h3 class="nurse-section-title">Treatment Rooms</h3>
+
+        <p>Blood Test Room - 3 Patients Waiting</p>
+        <p>Vaccination Room - 1 Patient In Progress</p>
+        <p>Dressing Room - Available</p>
+
+    </div>
+
+    <!-- PHARMACY -->
+    <div class="nurse-card">
+
+        <h3 class="nurse-section-title">Pharmacy Queue</h3>
+
+        <p>5 Prescriptions Pending</p>
+        <p>2 Ready for Collection</p>
+        <p>1 Delayed (Out of Stock Item)</p>
+
+    </div>
+
+    <!-- PATIENT FLOW -->
+    <div class="nurse-card">
+
+        <h3 class="nurse-section-title">Patient Flow</h3>
+
+        <p>Waiting Queue: 12 Patients</p>
+        <p>In Consultation: 4 Patients</p>
+        <p>Completed Today: 38 Patients</p>
+
+    </div>
+
+</div>
+
+{% endblock %}

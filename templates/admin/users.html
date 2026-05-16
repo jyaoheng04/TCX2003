@@ -1,0 +1,86 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="admin-title">User Management</h2>
+
+<a href="/admin/users/create" class="admin-btn-primary">
+    + Add New User
+</a>
+
+<div class="admin-table-card">
+
+    <table class="admin-table">
+
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <tr>
+                <td>
+                    <div class="admin-user">
+                        <div class="admin-avatar">DT</div>
+                        <div>
+                            <p class="admin-name">Dr Tan</p>
+                            <span class="admin-email">drtan@clinic.com</span>
+                        </div>
+                    </div>
+                </td>
+
+                <td>
+                    <span class="admin-badge doctor">Doctor</span>
+                </td>
+
+                <td>
+                    <span class="admin-status active">Active</span>
+                </td>
+
+                <td>
+                    <a href="/admin/users/edit/1" class="admin-btn edit">Edit</a>
+                    <a href="#" class="admin-btn delete">Delete</a>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <div class="admin-user">
+                        <div class="admin-avatar">ML</div>
+                        <div>
+                            <p class="admin-name">Mary Lee</p>
+                            <span class="admin-email">mary@clinic.com</span>
+                        </div>
+                    </div>
+                </td>
+
+                <td>
+                    <span class="admin-badge nurse">Nurse</span>
+                </td>
+
+                <td>
+                    <span class="admin-status active">Active</span>
+                </td>
+
+                <td>
+                    <a href="/admin/users/edit/2" class="admin-btn edit">Edit</a>
+                    <a href="#" class="admin-btn delete">Delete</a>
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="admin-title">System Security Center</h2>
+
+<div class="admin-security-grid">
+
+    <!-- ROLE ACCESS -->
+    <div class="admin-security-card">
+
+        <h3>Role Access Control</h3>
+
+        <div class="admin-security-box">
+            <p><strong>Doctor:</strong> View & update diagnosis, prescriptions</p>
+            <p><strong>Nurse:</strong> Dispense medication, update patient status</p>
+            <p><strong>Patient:</strong> View appointments & records</p>
+            <p><strong>Admin:</strong> Full system control</p>
+        </div>
+
+    </div>
+
+    <!-- LOGIN SECURITY -->
+    <div class="admin-security-card">
+
+        <h3>Login Security</h3>
+
+        <div class="admin-security-box">
+            <p>Failed Login Attempts (24h): <strong>3</strong></p>
+            <p>Blocked IPs: <strong>1</strong></p>
+            <p>Suspicious Activity: <strong>None</strong></p>
+        </div>
+
+        <button class="admin-btn-primary">
+            View Login Logs
+        </button>
+
+    </div>
+
+    <!-- ACTIVE SESSIONS -->
+    <div class="admin-security-card">
+
+        <h3>Active Sessions</h3>
+
+        <div class="admin-session">
+            <p>Dr Tan • Chrome • Singapore</p>
+            <button class="admin-btn-danger-sm">Force Logout</button>
+        </div>
+
+        <div class="admin-session">
+            <p>Mary Lee • Mobile App • Active</p>
+            <button class="admin-btn-danger-sm">Force Logout</button>
+        </div>
+
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div class="admin-security-card">
+
+        <h3>Audit Logs</h3>
+
+        <div class="admin-security-box">
+            <p>✔ Dr Tan updated Patient #102</p>
+            <p>✔ Nurse Kelly dispensed medication</p>
+            <p>✔ Admin created new user</p>
+        </div>
+
+        <button class="admin-btn-primary">
+            View Full Audit Trail
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}

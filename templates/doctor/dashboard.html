@@ -1,0 +1,29 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-page doctor-theme">
+
+    <h2 class="dashboard-title">Doctor Dashboard</h2>
+
+    <div class="dashboard-grid">
+
+        <a href="/doctor/consultations" class="dashboard-card">
+            <h3>📄 Consultations</h3>
+            <p>View all patient records</p>
+        </a>
+
+        <a href="/doctor/create" class="dashboard-card">
+            <h3>➕ New Consultation</h3>
+            <p>Create patient medical record</p>
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

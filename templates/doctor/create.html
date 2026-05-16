@@ -1,0 +1,60 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="doctor-page">
+
+    <h2 class="title">New Consultation</h2>
+
+    <div class="form-card">
+
+        <form class="consult-form">
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>Patient</label>
+                    <select>
+                        <option>Select Patient</option>
+                        <option>John Tan</option>
+                        <option>Mary Lee</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Symptoms</label>
+                    <input type="text" placeholder="e.g. Fever, headache">
+                </div>
+
+                <div class="field">
+                    <label>Diagnosis</label>
+                    <input type="text" placeholder="e.g. Viral infection">
+                </div>
+
+                <div class="field">
+                    <label>Prescription</label>
+                    <input type="text" placeholder="e.g. Paracetamol 500mg">
+                </div>
+
+            </div>
+
+            <div class="field full">
+                <label>Doctor Notes</label>
+                <textarea placeholder="Add detailed observations..."></textarea>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-primary">Save Consultation</button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
