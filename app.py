@@ -1,6 +1,23 @@
 from flask import Flask, render_template, redirect
+from dotenv import load_dotenv
+import os
+import mysql.connector
+
+load_dotenv()
 
 app = Flask(__name__)
+
+# SECRET KEY
+app.secret_key = os.getenv("SECRET_KEY")
+
+# DB CONNECTION
+db = mysql.connector.connect(
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME"),
+    port=os.getenv("DB_PORT")
+)
 
 @app.route('/')
 def login():

@@ -2,14 +2,24 @@ If any features or components are not relevant to your assigned role, you may re
 The remaining functionality should be designed by you, but it should still follow a consistent and similar UI style across all pages.
 If any data is required to be accessed or displayed in other role-specific pages outside your own scope, please inform the respective person in charge.
 
-Important!! -> Create your own branch, then clone the main branch into your branch and carry out all development work within your assigned branch.
-Currently you need to do url manipulation to access the page you need to work on. Take a look at the app.py to see the url.
+IMPORTANT!! 
+1) DO NOT COMMIT .env INTO GITHUB WITH ALL YOUR DATABASE CREDENTIAL
+2) Create your own branch, then clone the main branch into your branch and carry out all development work within your assigned branch.
+3) Currently you need to do url manipulation to access the page you need to work on. Take a look at the app.py to see the url.
+
+Please run the application in this sequence:
+1) Download all the missing libs before running
+2) python init_db.py (run this to create the database with tables(will remove all existing data if you run the init_db.py before. Basically a clean slate)
+3) python app.py (run the web app, it is connected with the database already)
+
+
 polyclinic-app/
 │
 ├── .venv/                         # Python virtual environment containing installed dependencies
 │
 ├── app.py                         # Main Flask application file used to start the server
-├── database.db                    # MySQL database storing application data
+├── init_db.py                     # Creating the Database and Tables. (run this before you start the app.py)
+├──.env                            # You need this to retrieve the DB Information before you run init_db.py
 │
 ├── routes/                        # Application route modules (Flask Blueprints / views) (have not implement anything yet)
 │   ├── admin.py                   # Handles admin management routes and system controls
