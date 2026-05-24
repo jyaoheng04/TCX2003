@@ -6,23 +6,64 @@
 
 {% block content %}
 
-<h2 class="dashboard-title">Patient Dashboard</h2>
+<div class="dashboard-header">
+    <h2 class="dashboard-title">Patient Dashboard</h2>
+    <p class="dashboard-subtitle">
+        Manage your appointments, records and prescriptions.
+    </p>
+</div>
 
 <div class="dashboard-grid">
 
+    <!-- APPOINTMENTS -->
     <div class="dashboard-card">
-        <h3>📅 My Appointments</h3>
-        <p>Upcoming consultations</p>
+
+        <div class="dashboard-card-header">
+            <h3>My Appointments</h3>
+        </div>
+
+        <p>
+            View upcoming consultations and appointment history.
+        </p>
+
+        <a href="#" class="dashboard-btn">
+            View Appointments
+        </a>
+
     </div>
 
+    <!-- MEDICAL RECORDS -->
     <div class="dashboard-card">
-        <h3>📁 Medical Records</h3>
-        <p>View past history</p>
+
+        <div class="dashboard-card-header">
+            <h3>Medical Records</h3>
+        </div>
+
+        <p>
+            Access diagnoses, lab reports and treatment history.
+        </p>
+
+        <a href="#" class="dashboard-btn">
+            View Records
+        </a>
+
     </div>
 
+    <!-- PRESCRIPTIONS -->
     <div class="dashboard-card">
-        <h3>💊 Prescriptions</h3>
-        <p>Current medication list</p>
+
+        <div class="dashboard-card-header">
+            <h3>Prescriptions</h3>
+        </div>
+
+        <p>
+            Review current medications and prescription details.
+        </p>
+
+        <a href="#" class="dashboard-btn">
+            View Prescriptions
+        </a>
+
     </div>
 
 </div>
