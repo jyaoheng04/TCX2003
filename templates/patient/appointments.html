@@ -14,73 +14,75 @@
 
 <div class="patient-grid">
 
-    <!-- CARD -->
-    <div class="patient-card">
+    {% if appointments %}
 
-        <div class="patient-card-header">
-            <div>
-                <h4 class="patient-date">20 May 2026</h4>
-                <p class="patient-doctor">Dr Tan</p>
+        {% for appointment in appointments %}
+
+        <div class="patient-card">
+
+            <div class="patient-card-header">
+
+                <div>
+
+                    <h4 class="patient-date">
+                        {{ appointment.appointment_date.strftime('%d %b %Y') }}
+                    </h4>
+
+                    <p class="patient-doctor">
+                        {{ appointment.doctor_name }}
+                    </p>
+
+                </div>
+
+                <span class="patient-status patient-status--{{ appointment.status }}">
+                    {{ appointment.status|capitalize }}
+                </span>
+
             </div>
 
-            <span class="patient-status patient-status--pending">
-                Pending
-            </span>
-        </div>
+            <div class="patient-info">
 
-        <div class="patient-info">
-            <p><strong>Type:</strong> Consultation</p>
-            <p><strong>Time:</strong> 10:30 AM</p>
-            <p><strong>Reason:</strong> Fever & headache</p>
-        </div>
+                <p>
+                    <strong>Type:</strong>
+                    {{ appointment.appointment_type.replace('_', ' ')|title }}
+                </p>
 
-        <div class="patient-actions">
+                <p>
+                    <strong>Time:</strong>
+                    {{ appointment.appointment_date.strftime('%I:%M %p') }}
+                </p>
 
-            <button class="patient-btn patient-btn--edit">
-                Reschedule
-            </button>
+                <p>
+                    <strong>Reason:</strong>
+                    {{ appointment.reason }}
+                </p>
 
-            <button class="patient-btn patient-btn--delete">
-                Cancel
-            </button>
-
-        </div>
-
-    </div>
-
-    <!-- CARD -->
-    <div class="patient-card">
-
-        <div class="patient-card-header">
-            <div>
-                <h4 class="patient-date">25 May 2026</h4>
-                <p class="patient-doctor">Dr Lim</p>
             </div>
 
-            <span class="patient-status patient-status--confirmed">
-                Confirmed
-            </span>
-        </div>
+            <div class="patient-actions">
 
-        <div class="patient-info">
-            <p><strong>Type:</strong> Vaccination</p>
-            <p><strong>Time:</strong> 2:00 PM</p>
-            <p><strong>Reason:</strong> Booster dose</p>
-        </div>
+                <button class="patient-btn patient-btn--edit">
+                    Reschedule
+                </button>
 
-        <div class="patient-actions">
+                <button class="patient-btn patient-btn--delete">
+                    Cancel
+                </button>
 
-            <button class="patient-btn patient-btn--edit">
-                Reschedule
-            </button>
-
-            <button class="patient-btn patient-btn--delete">
-                Cancel
-            </button>
+            </div>
 
         </div>
 
-    </div>
+        {% endfor %}
+
+    {% else %}
+
+        <div class="patient-card">
+            <h3>No appointments found</h3>
+            <p>Book your first appointment.</p>
+        </div>
+
+    {% endif %}
 
 </div>
 

@@ -86,6 +86,7 @@ CREATE TABLE appointment (
     patient_id INT,
     doctor_id INT,
     appointment_type ENUM('consultation','vaccination','blood_test','urine_test'),
+    reason TEXT,
     appointment_date DATETIME,
     status ENUM('booked','completed','cancelled'),
     FOREIGN KEY (patient_id) REFERENCES patient(patient_id),

@@ -10,23 +10,42 @@
 
 <div class="patient-form-card">
 
-    <form class="patient-form">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+    {% endwith %}
+
+    <form class="patient-form" method="POST">
 
         <div class="patient-field">
             <label>Doctor</label>
-            <select>
-                <option>Select Doctor</option>
-                <option>Dr Tan</option>
-                <option>Dr Lim</option>
+
+            <select name="doctor_id" required>
+                {% for doctor in doctors %}
+                <option value="{{ doctor.staff_id }}">
+                    {{ doctor.full_name }}
+                </option>
+                {% endfor %}
             </select>
         </div>
 
         <div class="patient-field">
             <label>Appointment Type</label>
-            <select>
-                <option>Consultation</option>
-                <option>Follow-up</option>
-                <option>Vaccination</option>
+
+            <select name="appointment_type" required>
+                <option value="consultation">Consultation</option>
+                <option value="vaccination">Vaccination</option>
+                <option value="blood_test">Blood Test</option>
+                <option value="urine_test">Urine Test</option>
             </select>
         </div>
 
@@ -34,23 +53,29 @@
 
             <div class="patient-field">
                 <label>Date</label>
-                <input type="date">
+                <input type="date" name="date" required>
             </div>
 
             <div class="patient-field">
                 <label>Time</label>
-                <input type="time">
+                <input type="time" name="time" required>
             </div>
 
         </div>
 
         <div class="patient-field">
             <label>Reason for Visit</label>
-            <input type="text" placeholder="e.g. fever, cough, headache">
+            <input
+                type="text"
+                name="reason"
+                maxlength="255"
+                placeholder="e.g. fever, cough, headache"
+                required
+            >
         </div>
 
         <div class="patient-actions">
-            <button type="button" class="patient-btn patient-btn--primary">
+            <button type="submit" class="patient-btn patient-btn--primary">
                 Confirm Booking
             </button>
         </div>
