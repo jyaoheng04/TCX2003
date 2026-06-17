@@ -4,6 +4,9 @@ from datetime import datetime
 import os
 import mysql.connector
 
+from routes.patient import patient_bp
+
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -67,143 +70,13 @@ def nurse_medication():
 def patient():
     return render_template('patient/dashboard.html', role="patient",active_page="dashboard")
 
-@app.route('/patient/appointments')
-def patient_appointments():
+# @app.route('/patient/appointments')
+# def patient_appointments():
+#     return render_template('patient/appointments.html', role="patient",active_page="appointments")
 
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT
-            a.appointment_id,
-            a.appointment_type,
-            a.reason,
-            a.appointment_date,
-            a.status,
-            ms.full_name AS doctor_name
-        FROM appointment a
-        JOIN medical_staff ms
-            ON a.doctor_id = ms.staff_id
-        ORDER BY a.appointment_date ASC
-    """)
-
-    appointments = cursor.fetchall()
-
-    cursor.close()
-
-    return render_template(
-        'patient/appointments.html',
-        role="patient",
-        active_page="appointments",
-        appointments=appointments
-    )
-
-@app.route('/patient/create', methods=['GET', 'POST'])
-def patient_create():
-
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT staff_id, full_name
-        FROM medical_staff
-        WHERE role = 'doctor'
-    """)
-    doctors = cursor.fetchall()
-
-    if request.method == 'POST':
-
-        doctor_id = request.form.get('doctor_id')
-        appointment_type = request.form.get('appointment_type')
-        date = request.form.get('date')
-        time = request.form.get('time')
-        reason = request.form.get('reason')
-
-        errors = []
-
-        if not doctor_id:
-            errors.append("Doctor is required.")
-
-        if not appointment_type:
-            errors.append("Appointment type is required.")
-
-        if not date:
-            errors.append("Date is required.")
-
-        if not time:
-            errors.append("Time is required.")
-
-        if not reason:
-            errors.append("Reason is required.")
-
-        if len(reason) > 255:
-            errors.append("Reason cannot exceed 255 characters.")
-
-        try:
-            appointment_datetime = datetime.strptime(
-                f"{date} {time}",
-                "%Y-%m-%d %H:%M"
-            )
-
-            if appointment_datetime <= datetime.now():
-                errors.append(
-                    "Appointment must be in the future."
-                )
-
-        except:
-            errors.append("Invalid date/time.")
-
-        if errors:
-
-            for error in errors:
-                flash(error, "error")
-
-            return render_template(
-                'patient/create.html',
-                role="patient",
-                active_page="appointments",
-                doctors=doctors
-            )
-
-        patient_id = 1
-
-        cursor.execute("""
-            INSERT INTO appointment
-            (
-                patient_id,
-                doctor_id,
-                appointment_type,
-                reason,
-                appointment_date,
-                status
-            )
-            VALUES
-            (%s,%s,%s,%s,%s,'booked')
-        """, (
-            patient_id,
-            doctor_id,
-            appointment_type,
-            reason,
-            appointment_datetime
-        ))
-
-        db.commit()
-
-        cursor.close()
-
-        flash(
-            "Appointment booked successfully.",
-            "success"
-        )
-
-        return redirect('/patient/appointments')
-
-    cursor.close()
-
-    return render_template(
-        'patient/create.html',
-        role="patient",
-        active_page="appointments",
-        doctors=doctors
-    )
+# @app.route('/patient/create')
+# def patient_create():
+#     return render_template('patient/create.html', role="patient",active_page="appointments")
 
 @app.route('/patient/records')
 def patient_records():
@@ -249,6 +122,7 @@ def admin_logs():
 def logout():
     return redirect('/')
 
+app.register_blueprint(patient_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)
