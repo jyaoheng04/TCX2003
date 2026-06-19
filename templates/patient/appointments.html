@@ -57,17 +57,71 @@
                     {{ appointment.reason }}
                 </p>
 
+                {% if appointment.status == 'booked' and not appointment.can_modify %}
+
+                    <div class="patient-warning">
+
+                        This appointment is within 24 hours of the scheduled time.
+
+                        Rescheduling and cancellation are no longer allowed.
+
+                    </div>
+
+                {% endif %}
+
             </div>
 
             <div class="patient-actions">
 
-                <button class="patient-btn patient-btn--edit">
-                    Reschedule
-                </button>
+                {% if appointment.status == 'booked' %}
 
-                <button class="patient-btn patient-btn--delete">
-                    Cancel
-                </button>
+                    {% if appointment.can_modify %}
+
+                        <a
+                            href="/patient/edit/{{ appointment.appointment_id }}"
+                            class="patient-btn patient-btn--edit"
+                        >
+                            Reschedule
+                        </a>
+
+                        <form
+                            action="/patient/cancel/{{ appointment.appointment_id }}"
+                            method="POST"
+                            style="display:inline;"
+                        >
+
+                            <button
+                                class="patient-btn patient-btn--delete"
+                                onclick="return confirm('Cancel this appointment?')"
+                            >
+                                Cancel
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <button
+                            class="patient-btn patient-btn--disabled"
+                            disabled
+                        >
+                            Reschedule Locked
+                        </button>
+
+                        <button
+                            class="patient-btn patient-btn--disabled"
+                            disabled
+                        >
+                            Cancel Locked
+                        </button>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <p>No actions available</p>
+
+                {% endif %}
 
             </div>
 

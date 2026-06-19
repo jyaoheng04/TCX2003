@@ -1,0 +1,50 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<h2>Reschedule Appointment</h2>
+
+<form method="POST">
+
+    <label>Choose Doctor</label>
+
+    <select name="doctor_id" required>
+
+        {% for doctor in doctors %}
+
+            <option
+                value="{{ doctor.staff_id }}"
+                {% if doctor.staff_id == appointment.doctor_id %}
+                    selected
+                {% endif %}
+            >
+                {{ doctor.full_name }}
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+    <br><br>
+
+    <label>New Date</label>
+    <input type="date" name="date" required>
+
+    <br><br>
+
+    <label>New Time</label>
+    <input type="time" name="time" required>
+
+    <br><br>
+
+    <button type="submit">
+        Save Changes
+    </button>
+
+    <a href="/patient/appointments">
+        Cancel
+    </a>
+
+</form>
+
+{% endblock %}
