@@ -165,7 +165,9 @@ def create():
         # temporary hardcoded patient
         patient_id = 1
 
-        # insert appointment
+        # ======================
+        # INSERT APPOINTMENT
+        # ======================
         cursor.execute("""
             INSERT INTO appointment
             (
@@ -184,6 +186,34 @@ def create():
             appointment_type,
             reason,
             appointment_datetime
+        ))
+
+        # get newly created appointment_id
+        appointment_id = cursor.lastrowid
+
+
+        # ======================
+        # INSERT CONSULTATION
+        # ======================
+        cursor.execute("""
+            INSERT INTO consultation
+            (
+                appointment_id,
+                patient_id,
+                staff_id,
+                visit_type,
+                service_type,
+                consultation_time
+            )
+            VALUES
+            (%s, %s, %s, %s, %s, %s)
+        """, (
+            appointment_id,            # same appointment
+            patient_id,               # same patient
+            doctor_id,               # doctor becomes staff_id
+            'appointment',           # fixed value
+            appointment_type,        # map appointment_type to service_type
+            appointment_datetime     # same datetime
         ))
 
         db.commit()
