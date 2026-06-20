@@ -17,22 +17,27 @@
 
         <div class="patient-profile-box">
             <span class="label">Full Name</span>
-            <p>John</p> <!-- use patient.full_name later -->
+            <p>{{ patient.full_name }}</p> 
+        </div>
+
+        <div class="patient-profile-box">
+            <span class="label">NRIC</span>
+            <p>{{ patient.nric }}</p>
         </div>
 
         <div class="patient-profile-box">
             <span class="label">Email</span>
-            <p>john@gmail.com</p> <!-- use patient.email later -->
+            <p>{{ patient.email }}</p> 
         </div>
 
         <div class="patient-profile-box">
             <span class="label">Phone</span>
-            <p>83858385</p> <!-- use patient.phone later -->
+            <p>{{ patient.phone }}</p> 
         </div>
 
         <div class="patient-profile-box">
             <span class="label">Date of Birth</span>
-            <p>12 Jan 1995</p> <!-- use patient.date_of_birth later -->
+            <p>{{ patient.date_of_birth }}</p> 
         </div>
 
     </div>

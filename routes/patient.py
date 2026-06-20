@@ -431,34 +431,35 @@ def cancel_appointment(appointment_id):
 # ===============
 # PATIENT PROFILE
 # ===============
-# @patient_bp.route('/profile')
-# def profile():
+@patient_bp.route('/profile')
+def profile():
 
-#     db = get_db()
-#     cursor = db.cursor(dictionary=True)
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
 
-#     patient_id = 1  
+    patient_id = 1  
 
-#     cursor.execute("""
-#         SELECT
-#             p.full_name,
-#             p.email,
-#             p.phone,
-#             p.date_of_birth,
-#             u.username
-#         FROM patient p
-#         JOIN user_account u ON p.user_id = u.user_id
-#         WHERE p.patient_id = %s
-#     """, (patient_id,))
+    cursor.execute("""
+        SELECT
+            p.full_name,
+            p.email,
+            p.nric,
+            p.phone,
+            p.date_of_birth,
+            u.username
+        FROM patient p
+        JOIN user_account u ON p.user_id = u.user_id
+        WHERE p.patient_id = %s
+    """, (patient_id,))
 
-#     patient = cursor.fetchone()
+    patient = cursor.fetchone()
 
-#     cursor.close()
-#     db.close()
+    cursor.close()
+    db.close()
 
-#     return render_template(
-#         "patient/profile.html",
-#         role="patient",
-#         active_page="profile",
-#         patient=patient
-#     )
+    return render_template(
+        "patient/profile.html",
+        role="patient",
+        active_page="profile",
+        patient=patient
+    )

@@ -83,9 +83,9 @@ def patient_records():
     return render_template('patient/records.html', role="patient",active_page="records")
 
 
-@app.route('/patient/profile')
-def patient_profile():
-    return render_template('patient/profile.html', role="patient",active_page="profile")
+# @app.route('/patient/profile')
+# def patient_profile():
+#     return render_template('patient/profile.html', role="patient",active_page="profile")
 
 # ADMIN
 @app.route('/admin/dashboard')
