@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, get_flas
 from datetime import datetime, timedelta
 import mysql.connector
 import os
+import json
 
 patient_bp = Blueprint(
     "patient",
@@ -191,7 +192,6 @@ def create():
         # get newly created appointment_id
         appointment_id = cursor.lastrowid
 
-
         # ======================
         # INSERT CONSULTATION
         # ======================
@@ -208,13 +208,41 @@ def create():
             VALUES
             (%s, %s, %s, %s, %s, %s)
         """, (
-            appointment_id,            # same appointment
-            patient_id,               # same patient
-            doctor_id,               # doctor becomes staff_id
-            'appointment',           # fixed value
-            appointment_type,        # map appointment_type to service_type
-            appointment_datetime     # same datetime
+            appointment_id,
+            patient_id,
+            doctor_id,
+            'appointment',
+            appointment_type,
+            appointment_datetime
         ))
+
+        # get newly created consultation_id
+        consultation_id = cursor.lastrowid
+
+        # ======================
+        # INSERT LAB RESULT
+        # only for blood/urine test
+        # ======================
+        if appointment_type in ['blood_test', 'urine_test']:
+
+            cursor.execute("""
+                INSERT INTO lab_result
+                (
+                    consultation_id,
+                    test_type,
+                    result_details,
+                    result_date,
+                    result_status
+                )
+                VALUES
+                (%s, %s, %s, %s, %s)
+            """, (
+                consultation_id,
+                appointment_type,   # maps directly to test_type
+                None,              # empty until lab fills it
+                None,              # no date yet
+                'pending'
+            ))
 
         db.commit()
 
@@ -492,4 +520,102 @@ def profile():
         role="patient",
         active_page="profile",
         patient=patient
+    )
+
+# ======================
+# MEDICAL RECORDS
+# ======================
+@patient_bp.route('/records')
+def records():
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    patient_id = 1   # replace with session later
+
+    cursor.execute("""
+        SELECT
+            c.consultation_id,
+            c.service_type,
+            c.symptoms,
+            c.doctor_notes,
+            c.prescription_notes,
+            c.medical_bill,
+            c.consultation_time,
+            ms.full_name AS doctor_name
+        FROM consultation c
+        JOIN medical_staff ms
+            ON c.staff_id = ms.staff_id
+        JOIN appointment a
+            ON c.appointment_id = a.appointment_id
+        WHERE c.patient_id = %s
+        AND a.status = 'completed'
+        ORDER BY c.consultation_time DESC
+    """, (patient_id,))
+
+    records = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return render_template(
+        "patient/records.html",
+        role="patient",
+        active_page="records",
+        records=records
+    )
+
+# ======================
+# VIEW LAB REPORT
+# ======================
+@patient_bp.route('/report/<int:consultation_id>')
+def view_report(consultation_id):
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    patient_id = 1
+
+    cursor.execute("""
+        SELECT
+            lr.lab_result_id,
+            lr.test_type,
+            lr.result_details,
+            lr.result_date,
+            lr.result_status,
+
+            c.consultation_id,
+            c.doctor_notes,
+            c.symptoms,
+            c.prescription_notes,
+            c.consultation_time,
+
+            ms.full_name AS doctor_name
+        FROM lab_result lr
+        JOIN consultation c
+            ON lr.consultation_id = c.consultation_id
+        JOIN medical_staff ms
+            ON c.staff_id = ms.staff_id
+        WHERE c.consultation_id = %s
+        AND c.patient_id = %s
+    """, (consultation_id, patient_id))
+
+    report = cursor.fetchone()
+
+    if report and report.get("result_details"):
+        try:
+            report["parsed_results"] = json.loads(report["result_details"])
+        except json.JSONDecodeError:
+            report["parsed_results"] = {}
+    else:
+        report = report or {}
+        report["parsed_results"] = {}
+
+    cursor.close()
+    db.close()
+
+    return render_template(
+        "patient/report.html",
+        report=report,
+        role="patient"
     )

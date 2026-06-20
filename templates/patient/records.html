@@ -10,40 +10,56 @@
 
 <div class="patient-record-grid">
 
-    <!-- RECORD CARD -->
+{% for record in records %}
+
     <div class="patient-record-card">
 
         <div class="patient-record-header">
+
             <div>
-                <h4 class="patient-record-title">Consultation #001</h4>
-                <p class="patient-record-date">20 May 2026 • Dr Tan</p>
+                <h4 class="patient-record-title">
+                    Consultation #{{ record.consultation_id }}
+                </h4>
+
+                <p class="patient-record-date">
+                    {{ record.consultation_time.strftime('%d %b %Y') }}
+                    • {{ record.doctor_name }}
+                </p>
             </div>
 
             <span class="patient-record-status done">
                 Completed
             </span>
+
         </div>
+
 
         <div class="patient-record-body">
 
             <div class="patient-record-box">
-                <span class="label">Diagnosis</span>
-                <p>Viral Fever</p>
+                <span class="label">Service Type</span>
+                <p>{{ record.service_type }}</p>
             </div>
 
             <div class="patient-record-box">
                 <span class="label">Symptoms</span>
-                <p>Fever, headache, fatigue</p>
+                <p>
+                    {{ record.symptoms if record.symptoms else "Not recorded" }}
+                </p>
             </div>
 
             <div class="patient-record-box">
                 <span class="label">Prescription</span>
-                <p>Paracetamol 500mg</p>
+                <p>
+                    {{ record.prescription_notes if record.prescription_notes else "No prescription" }}
+                </p>
             </div>
 
             <div class="patient-record-box">
-                <span class="label">Medical Certificate</span>
-                <p>Yes – 2 Days MC</p>
+                <span class="label">Doctor Notes</span>
+                <p>
+                    {{ record.doctor_notes if record.doctor_notes else "No notes available" }}
+                </p>
             </div>
 
         </div>
@@ -51,70 +67,27 @@
         <div class="patient-record-footer">
 
             <div>
-                <p><strong>Medication Status:</strong> Completed</p>
-                <p><strong>Follow-up:</strong> Not Required</p>
+                <p>
+                    <strong>Medical Bill:</strong>
+                    ${{ record.medical_bill if record.medical_bill else "Pending" }}
+                </p>
             </div>
 
-            <button class="patient-btn-view">
-                View Full Report
-            </button>
+            {% if record.service_type == "blood_test" or record.service_type == "urine_test" %}
+
+                <a href="/patient/report/{{ record.consultation_id }}">
+                    <button class="patient-btn-view">
+                        View Report
+                    </button>
+                </a>
+
+            {% endif %}
 
         </div>
 
     </div>
 
-    <!-- RECORD CARD -->
-    <div class="patient-record-card">
-
-        <div class="patient-record-header">
-            <div>
-                <h4 class="patient-record-title">Consultation #002</h4>
-                <p class="patient-record-date">25 May 2026 • Dr Lim</p>
-            </div>
-
-            <span class="patient-record-status pending">
-                Follow-up
-            </span>
-        </div>
-
-        <div class="patient-record-body">
-
-            <div class="patient-record-box">
-                <span class="label">Diagnosis</span>
-                <p>Hypertension Check</p>
-            </div>
-
-            <div class="patient-record-box">
-                <span class="label">Symptoms</span>
-                <p>Headache, dizziness</p>
-            </div>
-
-            <div class="patient-record-box">
-                <span class="label">Prescription</span>
-                <p>Blood pressure medication</p>
-            </div>
-
-            <div class="patient-record-box">
-                <span class="label">Medical Certificate</span>
-                <p>No MC Issued</p>
-            </div>
-
-        </div>
-
-        <div class="patient-record-footer">
-
-            <div>
-                <p><strong>Medication Status:</strong> Ongoing</p>
-                <p><strong>Follow-up:</strong> Required in 1 week</p>
-            </div>
-
-            <button class="patient-btn-view">
-                View Full Report
-            </button>
-
-        </div>
-
-    </div>
+{% endfor %}
 
 </div>
 

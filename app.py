@@ -70,23 +70,6 @@ def nurse_medication():
 def patient():
     return render_template('patient/dashboard.html', role="patient",active_page="dashboard")
 
-# @app.route('/patient/appointments')
-# def patient_appointments():
-#     return render_template('patient/appointments.html', role="patient",active_page="appointments")
-
-# @app.route('/patient/create')
-# def patient_create():
-#     return render_template('patient/create.html', role="patient",active_page="appointments")
-
-@app.route('/patient/records')
-def patient_records():
-    return render_template('patient/records.html', role="patient",active_page="records")
-
-
-# @app.route('/patient/profile')
-# def patient_profile():
-#     return render_template('patient/profile.html', role="patient",active_page="profile")
-
 # ADMIN
 @app.route('/admin/dashboard')
 def admin():

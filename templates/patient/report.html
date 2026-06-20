@@ -1,0 +1,226 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="patient-title">Laboratory Report</h2>
+
+{% if report is defined and report %}
+
+<!-- ===================== -->
+<!-- REPORT SUMMARY -->
+<!-- ===================== -->
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">
+        {{ (report.test_type or "").replace("_", " ").title() }}
+    </h3>
+
+    <div class="patient-profile-box">
+        <span class="label">Test Type</span>
+        <p>{{ (report.test_type or "").replace("_", " ").title() }}</p>
+    </div>
+
+    <div class="patient-profile-box">
+        <span class="label">Status</span>
+        <p>{{ report.result_status or "Unknown" }}</p>
+    </div>
+
+    <div class="patient-profile-box">
+        <span class="label">Result Date</span>
+        <p>
+            {% if report.result_date %}
+                {{ report.result_date }}
+            {% else %}
+                Pending
+            {% endif %}
+        </p>
+    </div>
+
+</div>
+
+<!-- ===================== -->
+<!-- TEST RESULTS -->
+<!-- ===================== -->
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">Test Results</h3>
+
+    {% if report.result_status == "pending" %}
+
+        <p>Lab results are still being processed.</p>
+
+    {% else %}
+
+        {% set results = report.parsed_results or {} %}
+
+        {% if report.test_type == "blood_test" %}
+
+            <div class="patient-profile-box">
+                <span class="label">Hemoglobin</span>
+                <p>{{ results.get('hemoglobin', 'N/A') }} g/dL</p>
+            </div>
+
+            <div class="patient-profile-box">
+                <span class="label">Glucose</span>
+                <p>{{ results.get('glucose', 'N/A') }} mg/dL</p>
+            </div>
+
+            <div class="patient-profile-box">
+                <span class="label">Cholesterol</span>
+                <p>{{ results.get('cholesterol', 'N/A') }} mg/dL</p>
+            </div>
+
+        {% elif report.test_type == "urine_test" %}
+
+            <div class="patient-profile-box">
+                <span class="label">pH Level</span>
+                <p>{{ results.get('ph', 'N/A') }}</p>
+            </div>
+
+            <div class="patient-profile-box">
+                <span class="label">Protein</span>
+                <p>{{ results.get('protein', 'N/A') }}</p>
+            </div>
+
+            <div class="patient-profile-box">
+                <span class="label">Glucose</span>
+                <p>{{ results.get('glucose', 'N/A') }}</p>
+            </div>
+
+            <div class="patient-profile-box">
+                <span class="label">Ketones</span>
+                <p>{{ results.get('ketones', 'N/A') }}</p>
+            </div>
+
+        {% endif %}
+
+    {% endif %}
+
+</div>
+
+<!-- ===================== -->
+<!-- CHART -->
+<!-- ===================== -->
+{% if report.result_status == "ready" %}
+
+<div class="patient-profile-card">
+    <h3 class="patient-section-title">Results Visualization</h3>
+    <canvas id="labChart"></canvas>
+</div>
+
+<script type="application/json" id="report-data">
+    {{ (report.parsed_results or {}) | tojson }}
+</script>
+
+{% endif %}
+
+<!-- ===================== -->
+<!-- DOCTOR'S REMARKS -->
+<!-- ===================== -->
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">Doctor's Remarks</h3>
+
+    <div class="patient-profile-box">
+        <span class="label">Doctor</span>
+        <p>{{ report.doctor_name or "Unknown" }}</p>
+    </div>
+
+    <div class="patient-profile-box">
+        <span class="label">Remarks</span>
+        <p>{{ report.doctor_notes or "No doctor's remarks available." }}</p>
+    </div>
+
+</div>
+
+<!-- ===================== -->
+<!-- BACK BUTTON -->
+<!-- ===================== -->
+<div style="margin-top:20px;">
+    <a href="/patient/records">
+        <button class="patient-btn-view">
+            Back to Records
+        </button>
+    </a>
+</div>
+
+{% else %}
+<p>No report found.</p>
+{% endif %}
+
+<!-- ===================== -->
+<!-- CHART.JS -->
+<!-- ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% if report is defined and report and report.result_status == "ready" %}
+
+<script>
+const reportData = JSON.parse(
+    document.getElementById("report-data").textContent || "{}"
+);
+
+const testType = {{ (report.test_type or "") | tojson }};
+const ctx = document.getElementById('labChart');
+
+if (ctx && reportData) {
+
+    if (testType === "blood_test") {
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Hemoglobin', 'Glucose', 'Cholesterol'],
+                datasets: [{
+                    label: 'Blood Test Results',
+                    data: [
+                        reportData.hemoglobin || 0,
+                        reportData.glucose || 0,
+                        reportData.cholesterol || 0
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+    } else if (testType === "urine_test") {
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['pH', 'Protein', 'Glucose', 'Ketones'],
+                datasets: [{
+                    label: 'Urine Test Results',
+                    data: [
+                        reportData.ph || 0,
+                        reportData.protein || 0,
+                        reportData.glucose || 0,
+                        reportData.ketones || 0
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+}
+</script>
+
+{% endif %}
+
+{% endblock %}
