@@ -10,68 +10,110 @@
 
 <div class="patient-form-card">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
+<form class="patient-form" method="POST">
+
+    <!-- DOCTOR -->
+    <div class="patient-field">
+        <label>Doctor</label>
+        <select name="doctor_id"
+                class="{% if errors.get('doctor_id') %}input-error{% endif %}"
+                required>
+
+            <option value="">-- Select Doctor --</option>
+
+            {% for doctor in doctors %}
+            <option value="{{ doctor.staff_id }}"
+                {% if form_data.get('doctor_id') == doctor.staff_id|string %}selected{% endif %}>
+                {{ doctor.full_name }}
+            </option>
             {% endfor %}
+        </select>
+
+        {% if errors.get('doctor_id') %}
+        <div class="field-error">{{ errors['doctor_id'] }}</div>
         {% endif %}
-    {% endwith %}
+    </div>
 
-    <form class="patient-form" method="POST">
+    <!-- APPOINTMENT TYPE -->
+    <div class="patient-field">
+        <label>Appointment Type</label>
+        <select name="appointment_type"
+                id="appointmentType"
+                class="{% if errors.get('appointment_type') %}input-error{% endif %}"
+                required>
 
-        <!-- DOCTOR -->
-        <div class="patient-field">
-            <label>Doctor</label>
-            <select name="doctor_id" required>
-                {% for doctor in doctors %}
-                <option value="{{ doctor.staff_id }}">
-                    {{ doctor.full_name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
+            {% set selected_type = form_data.get('appointment_type') %}
 
-        <!-- APPOINTMENT TYPE -->
-        <div class="patient-field">
-            <label>Appointment Type</label>
-            <select name="appointment_type" id="appointmentType" required>
-                <option value="consultation">Consultation</option>
-                <option value="blood_test">Blood Test</option>
-                <option value="urine_test">Urine Test</option>
-            </select>
-        </div>
+            <option value="consultation" {% if selected_type == 'consultation' %}selected{% endif %}>
+                Consultation
+            </option>
+            <option value="blood_test" {% if selected_type == 'blood_test' %}selected{% endif %}>
+                Blood Test
+            </option>
+            <option value="urine_test" {% if selected_type == 'urine_test' %}selected{% endif %}>
+                Urine Test
+            </option>
+        </select>
 
-        <!-- DATE -->
-        <div class="patient-field">
-            <label>Select Date</label>
-            <input type="date" id="datePicker" name="date" required>
-        </div>
+        {% if errors.get('appointment_type') %}
+        <div class="field-error">{{ errors['appointment_type'] }}</div>
+        {% endif %}
+    </div>
 
-        <!-- TIME SLOTS -->
-        <div class="patient-field">
-            <label>Select Time</label>
+    <!-- DATE -->
+    <div class="patient-field">
+        <label>Select Date</label>
+        <input type="date"
+               id="datePicker"
+               name="date"
+               value="{{ form_data.get('date', '') }}"
+               class="{% if errors.get('date') %}input-error{% endif %}"
+               required>
 
-            <div id="timeSlots" class="time-slot-grid"></div>
+        {% if errors.get('date') %}
+        <div class="field-error">{{ errors['date'] }}</div>
+        {% endif %}
+    </div>
 
-            <input type="hidden" name="time" id="selectedTime" required>
-        </div>
+    <!-- TIME -->
+    <div class="patient-field">
+        <label>Select Time</label>
 
-        <!-- REASON -->
-        <div class="patient-field">
-            <label>Reason for Visit</label>
-            <input type="text" name="reason" required>
-        </div>
+        <div id="timeSlots" class="time-slot-grid"></div>
 
-        <div class="patient-actions">
-            <button type="submit" class="patient-btn patient-btn--primary">
-                Confirm Booking
-            </button>
-        </div>
+        <input type="hidden"
+               name="time"
+               id="selectedTime"
+               value="{{ form_data.get('time', '') }}"
+               class="{% if errors.get('time') %}input-error{% endif %}">
 
-    </form>
+        {% if errors.get('time') %}
+        <div class="field-error">{{ errors['time'] }}</div>
+        {% endif %}
+    </div>
+
+    <!-- REASON -->
+    <div class="patient-field">
+        <label>Reason for Visit</label>
+        <input type="text"
+               name="reason"
+               value="{{ form_data.get('reason', '') }}"
+               class="{% if errors.get('reason') %}input-error{% endif %}"
+               required>
+
+        {% if errors.get('reason') %}
+        <div class="field-error">{{ errors['reason'] }}</div>
+        {% endif %}
+    </div>
+
+    <div class="patient-actions">
+        <button type="submit" class="patient-btn patient-btn--primary">
+            Confirm Booking
+        </button>
+    </div>
+
+</form>
+
 </div>
 
 <!-- ===================== -->
@@ -83,18 +125,15 @@ const timeSlotsDiv = document.getElementById("timeSlots");
 const selectedTime = document.getElementById("selectedTime");
 const appointmentType = document.getElementById("appointmentType");
 
-// fetch booked times from backend
 async function getBooked(date) {
     const res = await fetch(`/patient/available-times?date=${date}`);
     const data = await res.json();
     return data.booked || [];
 }
 
-// generate slots based on type
 function generateSlots(type) {
 
     const slots = [];
-
     const startHour = 8;
     const endHour = 18;
 
@@ -141,7 +180,6 @@ function generateSlots(type) {
     return slots;
 }
 
-// render UI
 async function renderSlots() {
 
     const date = datePicker.value;
@@ -181,7 +219,6 @@ async function renderSlots() {
     });
 }
 
-// events
 datePicker.addEventListener("change", renderSlots);
 appointmentType.addEventListener("change", renderSlots);
 </script>
@@ -213,6 +250,17 @@ appointmentType.addEventListener("change", renderSlots);
     background: #ddd;
     color: #888;
     cursor: not-allowed;
+}
+
+.input-error {
+    border: 1px solid #e74c3c !important;
+    background-color: #fff5f5;
+}
+
+.field-error {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 5px;
 }
 </style>
 

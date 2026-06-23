@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, get_flashed_messages
+from flask import Blueprint, render_template, request, redirect, get_flashed_messages
 from datetime import datetime, timedelta
 import mysql.connector
 import os
@@ -105,7 +105,6 @@ def create():
         FROM medical_staff
         WHERE role = 'doctor'
     """)
-
     doctors = cursor.fetchall()
 
     if request.method == 'POST':
@@ -116,59 +115,59 @@ def create():
         time = request.form.get('time')
         reason = request.form.get('reason')
 
-        errors = []
+        errors = {}
 
+        # ======================
+        # FIELD VALIDATION
+        # ======================
         if not doctor_id:
-            errors.append("Doctor is required.")
+            errors["doctor_id"] = "Doctor is required."
 
         if not appointment_type:
-            errors.append("Appointment type is required.")
+            errors["appointment_type"] = "Appointment type is required."
 
         if not date:
-            errors.append("Date is required.")
+            errors["date"] = "Date is required."
 
         if not time:
-            errors.append("Time is required.")
+            errors["time"] = "Time is required."
 
         if not reason:
-            errors.append("Reason is required.")
+            errors["reason"] = "Reason is required."
 
-        try:
-            appointment_datetime = datetime.strptime(
-                f"{date} {time}",
-                "%Y-%m-%d %H:%M"
-            )
+        appointment_datetime = None
 
-            if appointment_datetime <= datetime.now():
-                errors.append(
-                    "Appointment must be in the future."
+        if date and time:
+            try:
+                appointment_datetime = datetime.strptime(
+                    f"{date} {time}",
+                    "%Y-%m-%d %H:%M"
                 )
 
-        except ValueError:
-            errors.append("Invalid date/time.")
+                if appointment_datetime <= datetime.now():
+                    errors["date"] = "Appointment must be in the future."
 
-        # validation errors
+            except ValueError:
+                errors["date"] = "Invalid date/time."
+
+        # ======================
+        # RETURN ERRORS IF ANY
+        # ======================
         if errors:
-
-            for error in errors:
-                flash(error, "error")
-
-            cursor.close()
-            db.close()
-
             return render_template(
                 'patient/create.html',
                 role="patient",
                 active_page="appointments",
-                doctors=doctors
+                doctors=doctors,
+                errors=errors,
+                form_data=request.form
             )
-
-        # temporary hardcoded patient
-        patient_id = 1
 
         # ======================
         # INSERT APPOINTMENT
         # ======================
+        patient_id = 1
+
         cursor.execute("""
             INSERT INTO appointment
             (
@@ -179,8 +178,7 @@ def create():
                 appointment_date,
                 status
             )
-            VALUES
-            (%s, %s, %s, %s, %s, 'booked')
+            VALUES (%s, %s, %s, %s, %s, 'booked')
         """, (
             patient_id,
             doctor_id,
@@ -189,7 +187,6 @@ def create():
             appointment_datetime
         ))
 
-        # get newly created appointment_id
         appointment_id = cursor.lastrowid
 
         # ======================
@@ -205,8 +202,7 @@ def create():
                 service_type,
                 consultation_time
             )
-            VALUES
-            (%s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, (
             appointment_id,
             patient_id,
@@ -216,12 +212,10 @@ def create():
             appointment_datetime
         ))
 
-        # get newly created consultation_id
         consultation_id = cursor.lastrowid
 
         # ======================
-        # INSERT LAB RESULT
-        # only for blood/urine test
+        # LAB RESULT (if needed)
         # ======================
         if appointment_type in ['blood_test', 'urine_test']:
 
@@ -234,22 +228,16 @@ def create():
                     result_date,
                     result_status
                 )
-                VALUES
-                (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s)
             """, (
                 consultation_id,
-                appointment_type,   # maps directly to test_type
-                None,              # empty until lab fills it
-                None,              # no date yet
+                appointment_type,
+                None,
+                None,
                 'pending'
             ))
 
         db.commit()
-
-        flash(
-            "Appointment booked successfully.",
-            "success"
-        )
 
         cursor.close()
         db.close()
@@ -259,16 +247,14 @@ def create():
     cursor.close()
     db.close()
 
-    # clear old flash messages
-    get_flashed_messages()
-
     return render_template(
         'patient/create.html',
         role="patient",
         active_page="appointments",
-        doctors=doctors
+        doctors=doctors,
+        errors={},
+        form_data={}
     )
-
 
 # ======================
 # RESCHEDULE APPOINTMENT
