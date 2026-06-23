@@ -582,3 +582,55 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ===================== TIME SLOT UI ===================== */
+
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* DEFAULT SLOT */
+.time-slot-btn {
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;              
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+/* HOVER */
+.time-slot-btn:hover {
+    background: #e0f2fe;
+    border-color: #0ea5e9;
+    color: #0f172a;
+}
+
+/* SELECTED SLOT */
+.time-slot-btn.selected {
+    background: #0ea5e9;
+    color: #ffffff;              
+    border-color: #0284c7;
+}
+
+/* DISABLED SLOT */
+.time-slot-btn:disabled,
+.disabled-slot {
+    background: #f1f5f9;
+    color: #94a3b8;              
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* FOCUS */
+.time-slot-btn:focus {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 2px;
+}

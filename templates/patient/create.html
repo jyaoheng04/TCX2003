@@ -10,29 +10,21 @@
 
 <div class="patient-form-card">
 
-    {% if request.path == '/patient/create' %}
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-
-            {% if messages %}
-                {% for category, message in messages %}
-
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-
-                {% endfor %}
-            {% endif %}
-
-        {% endwith %}
-
-    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <form class="patient-form" method="POST">
 
+        <!-- DOCTOR -->
         <div class="patient-field">
             <label>Doctor</label>
-
             <select name="doctor_id" required>
                 {% for doctor in doctors %}
                 <option value="{{ doctor.staff_id }}">
@@ -42,40 +34,35 @@
             </select>
         </div>
 
+        <!-- APPOINTMENT TYPE -->
         <div class="patient-field">
             <label>Appointment Type</label>
-
-            <select name="appointment_type" required>
+            <select name="appointment_type" id="appointmentType" required>
                 <option value="consultation">Consultation</option>
-                <option value="vaccination">Vaccination</option>
                 <option value="blood_test">Blood Test</option>
                 <option value="urine_test">Urine Test</option>
             </select>
         </div>
 
-        <div class="patient-grid-2">
-
-            <div class="patient-field">
-                <label>Date</label>
-                <input type="date" name="date" required>
-            </div>
-
-            <div class="patient-field">
-                <label>Time</label>
-                <input type="time" name="time" required>
-            </div>
-
+        <!-- DATE -->
+        <div class="patient-field">
+            <label>Select Date</label>
+            <input type="date" id="datePicker" name="date" required>
         </div>
 
+        <!-- TIME SLOTS -->
+        <div class="patient-field">
+            <label>Select Time</label>
+
+            <div id="timeSlots" class="time-slot-grid"></div>
+
+            <input type="hidden" name="time" id="selectedTime" required>
+        </div>
+
+        <!-- REASON -->
         <div class="patient-field">
             <label>Reason for Visit</label>
-            <input
-                type="text"
-                name="reason"
-                maxlength="255"
-                placeholder="e.g. fever, cough, headache"
-                required
-            >
+            <input type="text" name="reason" required>
         </div>
 
         <div class="patient-actions">
@@ -85,7 +72,148 @@
         </div>
 
     </form>
-
 </div>
+
+<!-- ===================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================== -->
+<script>
+const datePicker = document.getElementById("datePicker");
+const timeSlotsDiv = document.getElementById("timeSlots");
+const selectedTime = document.getElementById("selectedTime");
+const appointmentType = document.getElementById("appointmentType");
+
+// fetch booked times from backend
+async function getBooked(date) {
+    const res = await fetch(`/patient/available-times?date=${date}`);
+    const data = await res.json();
+    return data.booked || [];
+}
+
+// generate slots based on type
+function generateSlots(type) {
+
+    const slots = [];
+
+    const startHour = 8;
+    const endHour = 18;
+
+    if (type === "consultation") {
+
+        const duration = 50;
+
+        for (let hour = startHour; hour <= endHour; hour++) {
+
+            const startH = String(hour).padStart(2, "0");
+            const startM = "00";
+
+            const startMinutes = hour * 60;
+            const endMinutes = startMinutes + duration;
+
+            const endH = String(Math.floor(endMinutes / 60)).padStart(2, "0");
+            const endM = String(endMinutes % 60).padStart(2, "0");
+
+            slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+        }
+
+    } else {
+
+        const duration = 30;
+
+        let start = startHour * 60;
+        const end = endHour * 60;
+
+        while (start + duration <= end) {
+
+            const startH = String(Math.floor(start / 60)).padStart(2, "0");
+            const startM = String(start % 60).padStart(2, "0");
+
+            const endTime = start + duration;
+            const endH = String(Math.floor(endTime / 60)).padStart(2, "0");
+            const endM = String(endTime % 60).padStart(2, "0");
+
+            slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+
+            start += duration;
+        }
+    }
+
+    return slots;
+}
+
+// render UI
+async function renderSlots() {
+
+    const date = datePicker.value;
+    const type = appointmentType.value;
+
+    if (!date || !type) return;
+
+    const booked = await getBooked(date);
+    const slots = generateSlots(type);
+
+    timeSlotsDiv.innerHTML = "";
+
+    slots.forEach(slot => {
+
+        const startTime = slot.split(" - ")[0];
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.innerText = slot;
+        btn.classList.add("time-slot-btn");
+
+        if (booked.includes(startTime)) {
+            btn.disabled = true;
+            btn.classList.add("disabled-slot");
+        }
+
+        btn.onclick = () => {
+
+            document.querySelectorAll(".time-slot-btn")
+                .forEach(b => b.classList.remove("selected"));
+
+            btn.classList.add("selected");
+            selectedTime.value = startTime;
+        };
+
+        timeSlotsDiv.appendChild(btn);
+    });
+}
+
+// events
+datePicker.addEventListener("change", renderSlots);
+appointmentType.addEventListener("change", renderSlots);
+</script>
+
+<!-- ===================== -->
+<!-- STYLES -->
+<!-- ===================== -->
+<style>
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.time-slot-btn {
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+.time-slot-btn.selected {
+    background: #4da3ff;
+    color: white;
+}
+
+.time-slot-btn:disabled,
+.disabled-slot {
+    background: #ddd;
+    color: #888;
+    cursor: not-allowed;
+}
+</style>
 
 {% endblock %}

@@ -619,3 +619,37 @@ def view_report(consultation_id):
         report=report,
         role="patient"
     )
+
+# ======================
+# GET BOOKED TIMES FOR A DATE
+# ======================
+@patient_bp.route('/available-times')
+def available_times():
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    date = request.args.get("date")
+
+    if not date:
+        return {"booked": []}
+
+    # get all booked times for that date
+    cursor.execute("""
+        SELECT appointment_date
+        FROM appointment
+        WHERE DATE(appointment_date) = %s
+        AND status = 'booked'
+    """, (date,))
+
+    results = cursor.fetchall()
+
+    booked_times = [
+        row["appointment_date"].strftime("%H:%M")
+        for row in results
+    ]
+
+    cursor.close()
+    db.close()
+
+    return {"booked": booked_times}
