@@ -8,48 +8,117 @@
 
 <div class="dashboard-header">
     <h2 class="dashboard-title">Patient Dashboard</h2>
-    <p class="dashboard-subtitle">
-        Manage your appointments, records and prescriptions.
-    </p>
 </div>
 
 <div class="dashboard-grid">
 
-    <!-- APPOINTMENTS -->
-    <div class="dashboard-card">
+    <!-- ===================== -->
+    <!-- TODAY APPOINTMENTS -->
+    <!-- ===================== -->
+     <div class="dashboard-section">
 
-        <div class="dashboard-card-header">
-            <h3>My Appointments</h3>
-        </div>
+        <h3>Today's Appointments</h3>
 
-        <p>
-            View upcoming consultations and appointment history.
-        </p>
+        {% if today_appointments %}
 
-        <a href="/patient/appointments" class="dashboard-btn">
-            View Appointments
-        </a>
+            {% for a in today_appointments %}
+
+            <div class="appointment-card">
+
+                <div class="appointment-top">
+
+                    <div class="queue-box">
+                        <div class="queue-label">Queue</div>
+                        <div class="queue-number">Q-001</div>
+                    </div>
+
+                    <div class="status-box">
+                        <span class="status status-waiting">Waiting</span>
+                    </div>
+
+                </div>
+
+                <div class="appointment-body">
+
+                    <p class="meta-line">
+                        <strong>Date:</strong>
+                        {{ a.appointment_date.strftime('%Y-%m-%d') }}
+                        &nbsp; | &nbsp;
+                        <strong>Time:</strong>
+                        {{ a.appointment_date.strftime('%H:%M') }}
+                    </p>
+
+                    <p><strong>Consultation Room:</strong> Room 3A</p>
+                    <p><strong>Type:</strong> 
+                        {{ appointment_labels.get(a.appointment_type, a.appointment_type) }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+            <p>No appointments today.</p>
+        {% endif %}
 
     </div>
 
-    <!-- MEDICAL RECORDS -->
-    <div class="dashboard-card">
 
-        <div class="dashboard-card-header">
-            <h3>Medical Records</h3>
-        </div>
+    <!-- ===================== -->
+    <!-- UPCOMING APPOINTMENTS -->
+    <!-- ===================== -->
+     <div class="dashboard-section">
 
-        <p>
-            Access diagnoses, lab reports and treatment history.
-        </p>
+        <h3>Upcoming Appointments</h3>
 
-        <a href="/patient/records" class="dashboard-btn">
-            View Records
-        </a>
+        {% if upcoming_appointments %}
+
+            {% for a in upcoming_appointments %}
+
+            <div class="appointment-card">
+
+                <div class="appointment-top">
+
+                    <div class="queue-box">
+                        <div class="queue-label">Queue</div>
+                        <div class="queue-number upcoming">Q-002</div>
+                    </div>
+
+                    <div class="status-box">
+                        <span class="status status-booked">Booked</span>
+                    </div>
+
+                </div>
+
+                <div class="appointment-body">
+
+                    <p class="meta-line">
+                        <strong>Date:</strong>
+                        {{ a.appointment_date.strftime('%Y-%m-%d') }}
+                        &nbsp; | &nbsp;
+                        <strong>Time:</strong>
+                        {{ a.appointment_date.strftime('%H:%M') }}
+                    </p>
+
+                    <p><strong>Consultation Room:</strong> Room 5B</p>
+                    <p><strong>Type:</strong> 
+                        {{ appointment_labels.get(a.appointment_type, a.appointment_type) }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+            <p>No upcoming appointments.</p>
+        {% endif %}
 
     </div>
 
-    </div>
 
 </div>
 

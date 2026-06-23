@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, get_flashed_messages
-from datetime import datetime, timedelta
+from flask import Blueprint, render_template, request, redirect, session
+from datetime import datetime, timedelta, date
 import mysql.connector
 import os
 import json
@@ -639,3 +639,73 @@ def available_times():
     db.close()
 
     return {"booked": booked_times}
+
+# =========
+# DASHBOARD
+# =========
+
+@patient_bp.route("/dashboard")
+def dashboard():
+    conn = mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database="polyclinic"
+    )
+
+    cursor = conn.cursor(dictionary=True)
+
+    # patient_id = session.get("patient_id")
+
+    patient_id = 1
+
+    today = date.today()
+
+    # =========================
+    # TODAY APPOINTMENTS
+    # =========================
+    cursor.execute("""
+        SELECT a.*, m.full_name AS doctor_name, m.department
+        FROM appointment a
+        JOIN medical_staff m ON a.doctor_id = m.staff_id
+        WHERE a.patient_id = %s
+        AND DATE(a.appointment_date) = %s
+        AND a.status = 'booked'
+        ORDER BY a.appointment_date ASC
+    """, (patient_id, today))
+
+    today_appointments = cursor.fetchall()
+
+    # =========================
+    # UPCOMING APPOINTMENTS
+    # =========================
+    cursor.execute("""
+        SELECT a.*, m.full_name AS doctor_name, m.department
+        FROM appointment a
+        JOIN medical_staff m ON a.doctor_id = m.staff_id
+        WHERE a.patient_id = %s
+        AND DATE(a.appointment_date) > %s
+        AND a.status = 'booked'
+        ORDER BY a.appointment_date ASC
+    """, (patient_id, today))
+
+    upcoming_appointments = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    APPOINTMENT_LABELS = {
+    "consultation": "Consultation",
+    "blood_test": "Blood Test",
+    "urine_test": "Urine Test",
+    "vaccination": "Vaccination"
+    }
+
+    return render_template(
+        "patient/dashboard.html",
+        today_appointments=today_appointments,
+        upcoming_appointments=upcoming_appointments,
+        appointment_labels=APPOINTMENT_LABELS,
+        active_page="dashboard",
+        role="patient"
+    )

@@ -634,3 +634,81 @@
     outline: 2px solid #0ea5e9;
     outline-offset: 2px;
 }
+
+.appointment-card {
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-top: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* TOP SECTION */
+.appointment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* QUEUE BOX (BIG FOCUS) */
+.queue-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.queue-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.queue-number {
+    font-size: 28px;   /* 👈 BIG NUMBER */
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.queue-number.upcoming {
+    color: #6c757d;
+}
+
+/* STATUS BADGES */
+.status {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-waiting {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-booked {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+/* BODY TEXT */
+.appointment-body p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.meta-line {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+}
