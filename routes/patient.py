@@ -39,9 +39,9 @@ def appointments():
     # auto-complete appointments whose datetime has passed
     cursor.execute("""
         UPDATE appointment
-        SET status = 'completed'
+        SET queue_status = 'completed'
         WHERE appointment_date <= NOW()
-        AND status = 'booked'
+        AND queue_status = 'waiting'
     """)
 
     db.commit()
@@ -53,7 +53,7 @@ def appointments():
             a.appointment_type,
             a.reason,
             a.appointment_date,
-            a.status,
+            a.queue_status,
             ms.full_name AS doctor_name
         FROM appointment a
         LEFT JOIN medical_staff ms
@@ -70,7 +70,7 @@ def appointments():
 
         appointment["can_modify"] = False
 
-        if appointment["status"] == "booked":
+        if appointment["queue_status"] == "waiting":
 
             time_difference = (
                 appointment["appointment_date"] - datetime.now()
@@ -181,15 +181,17 @@ def create():
                 appointment_type,
                 reason,
                 appointment_date,
-                status
+                queue_status,
+                consultation_room
             )
-            VALUES (%s, %s, %s, %s, %s, 'booked')
+            VALUES (%s, %s, %s, %s, %s, 'waiting', %s)
         """, (
             patient_id,
             doctor_id,
             appointment_type,
             reason,
-            appointment_datetime
+            appointment_datetime,
+            "Room 3A"
         ))
 
         appointment_id = cursor.lastrowid
@@ -403,7 +405,7 @@ def cancel_appointment(appointment_id):
             appointment_id,
             patient_id,
             appointment_date,
-            status
+            queue_status
         FROM appointment
         WHERE appointment_id = %s
         AND patient_id = %s
@@ -425,7 +427,7 @@ def cancel_appointment(appointment_id):
         return redirect('/patient/appointments')
 
     # cannot cancel completed/cancelled
-    if appointment["status"] != "booked":
+    if appointment["queue_status"] != "waiting":
 
         flash(
             "This appointment cannot be cancelled.",
@@ -457,7 +459,7 @@ def cancel_appointment(appointment_id):
     # cancel appointment
     cursor.execute("""
         UPDATE appointment
-        SET status = 'cancelled'
+        SET queue_status = 'cancelled'
         WHERE appointment_id = %s
         AND patient_id = %s
     """, (
@@ -540,7 +542,7 @@ def records():
         JOIN appointment a
             ON c.appointment_id = a.appointment_id
         WHERE c.patient_id = %s
-        AND a.status = 'completed'
+        AND a.queue_status = 'completed'
         ORDER BY c.consultation_time DESC
     """, (patient_id,))
 
@@ -640,7 +642,7 @@ def available_times():
             FROM appointment
             WHERE DATE(appointment_date) = %s
             AND doctor_id = %s
-            AND status = 'booked'
+            AND queue_status = 'waiting'
         """, (date, doctor_id))
 
     # ============================
@@ -652,7 +654,7 @@ def available_times():
             SELECT appointment_date
             FROM appointment
             WHERE DATE(appointment_date) = %s
-            AND status = 'booked'
+            AND queue_status = 'waiting'
             AND appointment_type = %s
         """, (date, appointment_type))
 
@@ -674,6 +676,7 @@ def available_times():
 
 @patient_bp.route("/dashboard")
 def dashboard():
+
     conn = mysql.connector.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
@@ -683,37 +686,38 @@ def dashboard():
 
     cursor = conn.cursor(dictionary=True)
 
-    # patient_id = session.get("patient_id")
-
     patient_id = 1
-
     today = date.today()
 
-    # =========================
     # TODAY APPOINTMENTS
-    # =========================
     cursor.execute("""
-        SELECT a.*, m.full_name AS doctor_name, m.department
+        SELECT
+            a.*,
+            m.full_name AS doctor_name,
+            m.department
         FROM appointment a
-        LEFT JOIN medical_staff m ON a.doctor_id = m.staff_id
+        LEFT JOIN medical_staff m
+            ON a.doctor_id = m.staff_id
         WHERE a.patient_id = %s
         AND DATE(a.appointment_date) = %s
-        AND a.status = 'booked'
+        AND a.queue_status != 'cancelled'
         ORDER BY a.appointment_date ASC
     """, (patient_id, today))
 
     today_appointments = cursor.fetchall()
 
-    # =========================
-    # UPCOMING APPOINTMENTS
-    # =========================
+    # UPCOMING
     cursor.execute("""
-        SELECT a.*, m.full_name AS doctor_name, m.department
+        SELECT
+            a.*,
+            m.full_name AS doctor_name,
+            m.department
         FROM appointment a
-        JOIN medical_staff m ON a.doctor_id = m.staff_id
+        LEFT JOIN medical_staff m
+            ON a.doctor_id = m.staff_id
         WHERE a.patient_id = %s
         AND DATE(a.appointment_date) > %s
-        AND a.status = 'booked'
+        AND a.queue_status != 'cancelled'
         ORDER BY a.appointment_date ASC
     """, (patient_id, today))
 
@@ -723,11 +727,10 @@ def dashboard():
     conn.close()
 
     APPOINTMENT_LABELS = {
-    "consultation": "Consultation",
-    "blood_test": "Blood Test",
-    "urine_test": "Urine Test",
-    "vaccination": "Vaccination"
-    }
+        "consultation": "Consultation",
+        "blood_test": "Blood Test",
+        "urine_test": "Urine Test"
+        }
 
     return render_template(
         "patient/dashboard.html",

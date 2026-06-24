@@ -29,11 +29,15 @@
 
                     <div class="queue-box">
                         <div class="queue-label">Queue</div>
-                        <div class="queue-number">Q-001</div>
+                        <div class="queue-number"> 
+                            {{ a.appointment_id }} 
+                        </div>
                     </div>
 
                     <div class="status-box">
-                        <span class="status status-waiting">Waiting</span>
+                        <span class="status status-waiting">
+                            {{ a.queue_status.replace("_", " ").title() }}
+                        </span>
                     </div>
 
                 </div>
@@ -48,7 +52,9 @@
                         {{ a.appointment_date.strftime('%H:%M') }}
                     </p>
 
-                    <p><strong>Consultation Room:</strong> Room 3A</p>
+                    <p><strong>Consultation Room:</strong> 
+                        {{ a.consultation_room }}
+                    </p>
                     <p><strong>Type:</strong> 
                         {{ appointment_labels.get(a.appointment_type, a.appointment_type) }}
                     </p>
@@ -83,11 +89,15 @@
 
                     <div class="queue-box">
                         <div class="queue-label">Queue</div>
-                        <div class="queue-number upcoming">Q-002</div>
+                        <div class="queue-number upcoming">
+                            {{ a.appointment_id }}
+                        </div>
                     </div>
 
                     <div class="status-box">
-                        <span class="status status-booked">Booked</span>
+                        <span class="status status-booked">
+                            {{ a.queue_status.replace("_", " ").title() }}
+                        </span>
                     </div>
 
                 </div>
@@ -102,7 +112,9 @@
                         {{ a.appointment_date.strftime('%H:%M') }}
                     </p>
 
-                    <p><strong>Consultation Room:</strong> Room 5B</p>
+                    <p><strong>Consultation Room:</strong> 
+                        {{ a.consultation_room }}
+                    </p>
                     <p><strong>Type:</strong> 
                         {{ appointment_labels.get(a.appointment_type, a.appointment_type) }}
                     </p>

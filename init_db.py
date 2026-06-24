@@ -81,18 +81,33 @@ CREATE TABLE web_admin (
 # APPOINTMENT
 # ======================
 cursor.execute("""
-CREATE TABLE appointment (
-    appointment_id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT,
-    doctor_id INT NULL,
-    appointment_type ENUM('consultation','vaccination','blood_test','urine_test'),
-    reason TEXT,
-    appointment_date DATETIME,
-    status ENUM('booked','completed','cancelled'),
-    FOREIGN KEY (patient_id) REFERENCES patient(patient_id),
-    FOREIGN KEY (doctor_id) REFERENCES medical_staff(staff_id)
-)
-""")
+    CREATE TABLE appointment (
+        appointment_id INT AUTO_INCREMENT PRIMARY KEY,
+        patient_id INT,
+        doctor_id INT NULL,
+
+        appointment_type ENUM(
+            'consultation',
+            'blood_test',
+            'urine_test'
+        ),
+
+        reason TEXT,
+        appointment_date DATETIME,
+
+        queue_status ENUM(
+            'waiting',
+            'active',
+            'completed',
+            'cancelled'
+        ) DEFAULT 'waiting',
+
+        consultation_room VARCHAR(20),
+
+        FOREIGN KEY (patient_id) REFERENCES patient(patient_id),
+        FOREIGN KEY (doctor_id) REFERENCES medical_staff(staff_id)
+    )
+    """)
 
 # ======================
 # WALK-IN QUEUE
@@ -155,6 +170,313 @@ CREATE TABLE lab_result (
     result_status ENUM('pending','ready'),
 
     FOREIGN KEY (consultation_id) REFERENCES consultation(consultation_id)
+)
+""")
+
+# ======================
+# SAMPLE TEST DATA
+# ======================
+
+# ----------------------
+# USER ACCOUNTS
+# ----------------------
+cursor.execute("""
+INSERT INTO user_account
+(username, password, user_type)
+VALUES
+('patient1', 'test123', 'patient'),
+('doctorA', 'test123', 'doctor'),
+('doctorB', 'test123', 'doctor'),
+('doctorC', 'test123', 'doctor')
+""")
+
+# ----------------------
+# PATIENT
+# patient_id = 1
+# ----------------------
+cursor.execute("""
+INSERT INTO patient
+(
+    user_id,
+    full_name,
+    nric,
+    phone,
+    email,
+    date_of_birth
+)
+VALUES
+(
+    1,
+    'John Tan',
+    'S1234567A',
+    '91234567',
+    'john@email.com',
+    '2001-03-14'
+)
+""")
+
+# ----------------------
+# DOCTORS
+# staff_id = 1,2,3
+# ----------------------
+cursor.execute("""
+INSERT INTO medical_staff
+(
+    user_id,
+    full_name,
+    role,
+    department,
+    specialisation
+)
+VALUES
+(
+    2,
+    'Dr Sarah Lim',
+    'doctor',
+    'General Medicine',
+    'Family Medicine'
+),
+(
+    3,
+    'Dr Michael Ong',
+    'doctor',
+    'Internal Medicine',
+    'Cardiology'
+),
+(
+    4,
+    'Dr Rachel Lee',
+    'doctor',
+    'Diagnostics',
+    'Pathology'
+)
+""")
+
+# ----------------------
+# APPOINTMENTS
+# For testing slot availability
+# ----------------------
+
+# Doctor Sarah → 27 Jun 10AM
+cursor.execute("""
+INSERT INTO appointment
+(
+    patient_id,
+    doctor_id,
+    appointment_type,
+    reason,
+    appointment_date,
+    queue_status,
+    consultation_room
+)
+VALUES
+(
+    1,
+    1,
+    'consultation',
+    'Severe headache',
+    '2026-06-27 10:00:00',
+    'waiting',
+    'Room 3A'
+)
+""")
+
+# Doctor Michael → same date same time
+cursor.execute("""
+INSERT INTO appointment
+(
+    patient_id,
+    doctor_id,
+    appointment_type,
+    reason,
+    appointment_date,
+    queue_status,
+    consultation_room
+)
+VALUES
+(
+    1,
+    2,
+    'consultation',
+    'Fever and flu',
+    '2026-06-27 10:00:00',
+    'waiting',
+    'Room 4B'
+)
+""")
+
+# Doctor Sarah → another slot
+cursor.execute("""
+INSERT INTO appointment
+(
+    patient_id,
+    doctor_id,
+    appointment_type,
+    reason,
+    appointment_date,
+    queue_status,
+    consultation_room
+)
+VALUES
+(
+    1,
+    1,
+    'consultation',
+    'Chest pain',
+    '2026-06-28 11:00:00',
+    'active',
+    'Room 3A'
+)
+""")
+
+# Blood Test
+cursor.execute("""
+INSERT INTO appointment
+(
+    patient_id,
+    doctor_id,
+    appointment_type,
+    reason,
+    appointment_date,
+    queue_status,
+    consultation_room
+)
+VALUES
+(
+    1,
+    NULL,
+    'blood_test',
+    'Routine blood screening',
+    '2026-06-29 14:00:00',
+    'waiting',
+    'Lab 1'
+)
+""")
+
+# Urine Test
+cursor.execute("""
+INSERT INTO appointment
+(
+    patient_id,
+    doctor_id,
+    appointment_type,
+    reason,
+    appointment_date,
+    queue_status,
+    consultation_room
+)
+VALUES
+(
+    1,
+    NULL,
+    'urine_test',
+    'Kidney function check',
+    '2026-06-29 15:00:00',
+    'completed',
+    'Lab 2'
+)
+""")
+
+# Cancelled appointment
+cursor.execute("""
+INSERT INTO appointment
+(
+    patient_id,
+    doctor_id,
+    appointment_type,
+    reason,
+    appointment_date,
+    queue_status,
+    consultation_room
+)
+VALUES
+(
+    1,
+    3,
+    'consultation',
+    'Back pain',
+    '2026-06-30 09:00:00',
+    'cancelled',
+    'Room 5A'
+)
+""")
+
+# ----------------------
+# CONSULTATION RECORDS
+# ----------------------
+
+# consultation_id = 1
+cursor.execute("""
+INSERT INTO consultation
+(
+    appointment_id,
+    patient_id,
+    staff_id,
+    visit_type,
+    service_type,
+    symptoms,
+    doctor_notes,
+    prescription_notes,
+    medical_bill,
+    consultation_time
+)
+VALUES
+(
+    1,
+    1,
+    1,
+    'appointment',
+    'consultation',
+    'Migraine',
+    'Needs rest',
+    'Paracetamol 500mg',
+    45.00,
+    '2026-06-27 10:00:00'
+)
+""")
+
+# consultation_id = 2
+cursor.execute("""
+INSERT INTO consultation
+(
+    appointment_id,
+    patient_id,
+    staff_id,
+    visit_type,
+    service_type,
+    consultation_time
+)
+VALUES
+(
+    4,
+    1,
+    3,
+    'appointment',
+    'blood_test',
+    '2026-06-29 14:00:00'
+)
+""")
+
+# ----------------------
+# LAB RESULTS
+# ----------------------
+
+cursor.execute("""
+INSERT INTO lab_result
+(
+    consultation_id,
+    test_type,
+    result_details,
+    result_date,
+    result_status
+)
+VALUES
+(
+    2,
+    'blood_test',
+    '{"Hemoglobin":"13.8","WBC":"6200","Platelets":"250000"}',
+    NOW(),
+    'ready'
 )
 """)
 
