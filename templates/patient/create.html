@@ -133,8 +133,20 @@ const doctorField = document.getElementById("doctorField");
 const doctorSelect = document.getElementById("doctorSelect");
 
 async function getBooked(date) {
-    const res = await fetch(`/patient/available-times?date=${date}`);
+
+    const doctorId = doctorSelect.value;
+    const type = appointmentType.value;
+
+    let url = `/patient/available-times?date=${date}&appointment_type=${type}`;
+
+    // consultation needs doctor-specific checking
+    if (type === "consultation" && doctorId) {
+        url += `&doctor_id=${doctorId}`;
+    }
+
+    const res = await fetch(url);
     const data = await res.json();
+
     return data.booked || [];
 }
 
@@ -194,6 +206,11 @@ async function renderSlots() {
 
     if (!date || !type) return;
 
+    if (type === "consultation" && !doctorSelect.value) {
+        timeSlotsDiv.innerHTML = "";
+        return;
+    }
+
     const booked = await getBooked(date);
     const slots = generateSlots(type);
 
@@ -251,6 +268,8 @@ appointmentType.addEventListener("change", () => {
     toggleDoctorField();
     renderSlots();
 });
+
+doctorSelect.addEventListener("change", renderSlots);
 
 toggleDoctorField();
 

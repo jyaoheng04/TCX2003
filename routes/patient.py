@@ -621,17 +621,40 @@ def available_times():
     cursor = db.cursor(dictionary=True)
 
     date = request.args.get("date")
+    doctor_id = request.args.get("doctor_id")
+    appointment_type = request.args.get("appointment_type")
 
     if not date:
         return {"booked": []}
 
-    # get all booked times for that date
-    cursor.execute("""
-        SELECT appointment_date
-        FROM appointment
-        WHERE DATE(appointment_date) = %s
-        AND status = 'booked'
-    """, (date,))
+    # ============================
+    # CONSULTATION → check by doctor
+    # ============================
+    if appointment_type == "consultation":
+
+        if not doctor_id:
+            return {"booked": []}
+
+        cursor.execute("""
+            SELECT appointment_date
+            FROM appointment
+            WHERE DATE(appointment_date) = %s
+            AND doctor_id = %s
+            AND status = 'booked'
+        """, (date, doctor_id))
+
+    # ============================
+    # BLOOD / URINE TEST → global check
+    # ============================
+    else:
+
+        cursor.execute("""
+            SELECT appointment_date
+            FROM appointment
+            WHERE DATE(appointment_date) = %s
+            AND status = 'booked'
+            AND appointment_type = %s
+        """, (date, appointment_type))
 
     results = cursor.fetchall()
 
