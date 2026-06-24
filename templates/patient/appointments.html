@@ -34,8 +34,8 @@
 
                 </div>
 
-                <span class="patient-status patient-status--{{ appointment.status }}">
-                    {{ appointment.status|capitalize }}
+                <span class="patient-status patient-status--{{ appointment.queue_status }}">
+                    {{ appointment.queue_status|capitalize }}
                 </span>
 
             </div>
@@ -57,7 +57,7 @@
                     {{ appointment.reason }}
                 </p>
 
-                {% if appointment.status == 'booked' and not appointment.can_modify %}
+                {% if appointment.queue_status == 'waiting' and not appointment.can_modify %}
 
                     <div class="patient-warning">
 
@@ -73,7 +73,7 @@
 
             <div class="patient-actions">
 
-                {% if appointment.status == 'booked' %}
+                {% if appointment.queue_status == 'waiting' %}
 
                     {% if appointment.can_modify %}
 
