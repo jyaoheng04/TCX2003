@@ -3,12 +3,18 @@ from dotenv import load_dotenv
 import os
 import mysql.connector
 
+from routes.doctor import doctor_bp
+from routes.nurse import nurse_bp
+
 load_dotenv()
 
 app = Flask(__name__)
 
 # SECRET KEY
 app.secret_key = os.getenv("SECRET_KEY")
+# Register blueprint
+app.register_blueprint(doctor_bp)
+app.register_blueprint(nurse_bp)
 
 # DB CONNECTION
 db = mysql.connector.connect(
@@ -21,45 +27,8 @@ db = mysql.connector.connect(
 
 @app.route('/')
 def login():
-    return render_template('auth/login.html')
-
-# DOCTOR
-@app.route('/doctor/dashboard')
-def doctor():
-    return render_template('doctor/dashboard.html', role="doctor", active_page="dashboard")
-
-@app.route('/doctor/consultations')
-def doctor_consultations():
-    return render_template('doctor/consultation.html', role="doctor", active_page="consultations")
-
-
-@app.route('/doctor/create')
-def doctor_create():
-    return render_template('doctor/create.html', role="doctor", active_page="create")
-
-
-@app.route('/doctor/edit/<int:id>')
-def doctor_edit(id):
-    return render_template('doctor/edit.html', role="doctor", id=id, active_page="edit")
-
-# NURSE
-@app.route('/nurse/dashboard')
-def nurse():
-    return render_template('nurse/dashboard.html', role="nurse",active_page="dashboard")
-
-@app.route('/nurse/patients')
-def nurse_patients():
-    return render_template('nurse/patients.html', role="nurse",active_page="patients")
-
-
-@app.route('/nurse/clinic_op')
-def nurse_wards():
-    return render_template('nurse/clinic_op.html', role="nurse",active_page="Clinic Operation")
-
-
-@app.route('/nurse/medication')
-def nurse_medication():
-    return render_template('nurse/medication.html', role="nurse",active_page="medication")
+    # return render_template('auth/login.html')
+    return redirect('/doctor/dashboard')
 
 # PATIENT
 @app.route('/patient/dashboard')

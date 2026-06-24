@@ -1,44 +1,36 @@
 <aside class="sidebar">
 
     {% if role == "doctor" %}
-
-        <a href="/doctor/dashboard"
-           class="{% if active_page == 'dashboard' %}active{% endif %}">
-            Dashboard
-        </a>
-
-        <a href="/doctor/consultations"
-           class="{% if active_page == 'consultations' %}active{% endif %}">
-            Consultations
-        </a>
-
-        <a href="/doctor/create"
-           class="{% if active_page == 'create' %}active{% endif %}">
-            New Consultation
-        </a>
-
+    <a href="/doctor/dashboard"
+       class="{% if active_page == 'dashboard' %}active{% endif %}">
+        Queue
+    </a>
+    <a href="/doctor/patients"
+       class="{% if active_page == 'patients' %}active{% endif %}">
+        Patient Records
+    </a>
+    <a href="/doctor/consultations"
+       class="{% if active_page == 'consultations' %}active{% endif %}">
+        Consultation History
+    </a>
+    <a href="/doctor/labs"
+       class="{% if active_page == 'labs' %}active{% endif %}">
+        Lab Result History
+    </a>
     {% elif role == "nurse" %}
+    <a href="/nurse/dashboard"
+       class="{% if active_page == 'dashboard' %}active{% endif %}">
+        Queue
+    </a>
 
-        <a href="/nurse/dashboard"
-           class="{% if active_page == 'dashboard' %}active{% endif %}">
-            Dashboard
-        </a>
-
-        <a href="/nurse/patients"
-           class="{% if active_page == 'patients' %}active{% endif %}">
-            Patients
-        </a>
-
-        <a href="/nurse/clinic_op"
-           class="{% if active_page == 'Clinic Operation' %}active{% endif %}">
-            Clinic Operations
-        </a>
-
-        <a href="/nurse/medication"
-           class="{% if active_page == 'medication' %}active{% endif %}">
-            Medication
-        </a>
-
+    <a href="/nurse/patients"
+       class="{% if active_page == 'patients' %}active{% endif %}">
+        Patient Records
+    </a>
+    <a href="/nurse/consultations"
+       class="{% if active_page == 'consultations' %}active{% endif %}">
+        Consultation History
+    </a>
     {% elif role == "admin" %}
 
         <a href="/admin/dashboard"

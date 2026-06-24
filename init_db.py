@@ -104,7 +104,7 @@ CREATE TABLE walk_in_queue (
     managed_by_admin_id INT,
     check_in_time DATETIME,
     priority_status ENUM('priority','regular'),
-    queue_status ENUM('waiting','in_consultation','completed','cancelled'),
+    queue_status ENUM('waiting','in_consultation','completed','cancelled','pending'),
     FOREIGN KEY (patient_id) REFERENCES patient(patient_id),
     FOREIGN KEY (assigned_staff_id) REFERENCES medical_staff(staff_id),
     FOREIGN KEY (managed_by_admin_id) REFERENCES web_admin(admin_id)
@@ -130,7 +130,7 @@ CREATE TABLE consultation (
     symptoms TEXT,
     doctor_notes TEXT,
     prescription_notes TEXT,
-    medical_bill DECIMAL(10,2),
+    medical_bill TEXT,
     rating INT,
     consultation_time DATETIME,
 
@@ -142,7 +142,7 @@ CREATE TABLE consultation (
 """)
 
 # ======================
-# LAB RESULT
+# LAB RESULT  # originally result_status was pending or ready
 # ======================
 cursor.execute("""
 CREATE TABLE lab_result (
@@ -151,7 +151,7 @@ CREATE TABLE lab_result (
     test_type ENUM('blood_test','urine_test'),
     result_details TEXT,
     result_date DATETIME,
-    result_status ENUM('pending','ready'),
+    result_status ENUM('normal','abnormal'),
 
     FOREIGN KEY (consultation_id) REFERENCES consultation(consultation_id)
 )
