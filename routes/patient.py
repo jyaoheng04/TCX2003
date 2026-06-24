@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, session
+from flask import Blueprint, render_template, request, redirect, session, flash
 from datetime import datetime, timedelta, date
 import mysql.connector
 import os
@@ -165,7 +165,8 @@ def create():
                 active_page="appointments",
                 doctors=doctors,
                 errors=errors,
-                form_data=request.form
+                form_data=request.form,
+                datetime=datetime
             )
 
         # ======================
@@ -260,7 +261,8 @@ def create():
         active_page="appointments",
         doctors=doctors,
         errors={},
-        form_data={}
+        form_data={},
+        datetime=datetime
     )
 
 # ======================
@@ -332,16 +334,19 @@ def edit_appointment(appointment_id):
                 "%Y-%m-%d %H:%M"
             )
 
-            if new_datetime <= datetime.now():
+            # =========================
+            # cannot book TODAY or PAST
+            # earliest = TOMORROW 00:00+
+            # =========================
+            today = datetime.now().date()
 
+            if new_datetime.date() <= today:
                 flash(
-                    "New appointment must be in the future.",
+                    "Rescheduled appointment must be from tomorrow onwards.",
                     "error"
                 )
-
                 cursor.close()
                 db.close()
-
                 return redirect('/patient/appointments')
 
         except ValueError:
@@ -740,3 +745,57 @@ def dashboard():
         active_page="dashboard",
         role="patient"
     )
+
+# ======================
+# GET AVAILABLE TIMES (EDIT PAGE)
+# ======================
+@patient_bp.route('/available-times-edit')
+def available_times_edit():
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    date = request.args.get("date")
+    doctor_id = request.args.get("doctor_id")
+
+    if not date:
+        return {"booked": []}
+
+    # ONLY FUTURE DATES ALLOWED 
+    today = datetime.now().date()
+    selected_date = datetime.strptime(date, "%Y-%m-%d").date()
+
+    if selected_date <= today:
+        return {"booked": []}
+
+    # doctor-specific check (same logic as create)
+    if doctor_id:
+
+        cursor.execute("""
+            SELECT appointment_date
+            FROM appointment
+            WHERE DATE(appointment_date) = %s
+            AND doctor_id = %s
+            AND queue_status = 'waiting'
+        """, (date, doctor_id))
+
+    else:
+
+        cursor.execute("""
+            SELECT appointment_date
+            FROM appointment
+            WHERE DATE(appointment_date) = %s
+            AND queue_status = 'waiting'
+        """, (date,))
+
+    results = cursor.fetchall()
+
+    booked_times = [
+        row["appointment_date"].strftime("%H:%M")
+        for row in results
+    ]
+
+    cursor.close()
+    db.close()
+
+    return {"booked": booked_times}

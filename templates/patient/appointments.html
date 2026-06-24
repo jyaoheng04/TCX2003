@@ -28,9 +28,17 @@
                         {{ appointment.appointment_date.strftime('%d %b %Y') }}
                     </h4>
 
-                    <p class="patient-doctor">
-                        {{ appointment.doctor_name }}
+                    <p class="patient-queue">
+                        Booking ID: <strong>#{{ appointment.appointment_id }}</strong>
                     </p>
+
+                    {% if appointment.appointment_type == "consultation" %}
+
+                        <p class="patient-doctor">
+                            {{ appointment.doctor_name }}
+                        </p>
+
+                    {% endif %}
 
                 </div>
 

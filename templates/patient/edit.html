@@ -1,50 +1,205 @@
 {% extends 'layout/base.html' %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+{% endblock %}
+
 {% block content %}
 
-<h2>Reschedule Appointment</h2>
+<h2 class="patient-title">Reschedule Appointment</h2>
 
-<form method="POST">
+<div class="patient-form-card">
 
-    <label>Choose Doctor</label>
+<form method="POST" class="patient-form">
 
-    <select name="doctor_id" required>
+    <!-- DOCTOR -->
+    <div class="patient-field" id="doctorField">
 
-        {% for doctor in doctors %}
+        <label>Doctor</label>
 
-            <option
-                value="{{ doctor.staff_id }}"
-                {% if doctor.staff_id == appointment.doctor_id %}
-                    selected
-                {% endif %}
-            >
-                {{ doctor.full_name }}
-            </option>
+        <select name="doctor_id"
+                id="doctorSelect"
+                required>
 
-        {% endfor %}
+            {% for doctor in doctors %}
 
-    </select>
+                <option value="{{ doctor.staff_id }}"
+                    {% if doctor.staff_id == appointment.doctor_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ doctor.full_name }}
+                </option>
 
-    <br><br>
+            {% endfor %}
 
-    <label>New Date</label>
-    <input type="date" name="date" required>
+        </select>
 
-    <br><br>
+    </div>
 
-    <label>New Time</label>
-    <input type="time" name="time" required>
+    <!-- DATE -->
+    <div class="patient-field">
 
-    <br><br>
+        <label>Select New Date (From Tomorrow Onwards)</label>
 
-    <button type="submit">
-        Save Changes
-    </button>
+        <input type="date"
+               id="datePicker"
+               name="date"
+               required>
 
-    <a href="/patient/appointments">
-        Cancel
-    </a>
+    </div>
+
+    <!-- TIME SLOTS -->
+    <div class="patient-field">
+
+        <label>Select New Time</label>
+
+        <div id="timeSlots" class="time-slot-grid"></div>
+
+        <input type="hidden" name="time" id="selectedTime" required>
+
+    </div>
+
+    <div class="patient-actions">
+        <button type="submit" class="patient-btn patient-btn--primary">
+            Save Changes
+        </button>
+
+        <a href="/patient/appointments" class="patient-btn patient-btn--secondary">
+            Cancel
+        </a>
+    </div>
 
 </form>
+
+</div>
+
+<!-- ===================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================== -->
+<script>
+
+const datePicker = document.getElementById("datePicker");
+const timeSlotsDiv = document.getElementById("timeSlots");
+const selectedTime = document.getElementById("selectedTime");
+const doctorSelect = document.getElementById("doctorSelect");
+
+const today = new Date();
+today.setDate(today.getDate() + 1); // tomorrow minimum
+
+datePicker.min = today.toISOString().split("T")[0];
+
+async function getBooked(date) {
+
+    const doctorId = doctorSelect.value;
+
+    let url = `/patient/available-times-edit?date=${date}`;
+
+    if (doctorId) {
+        url += `&doctor_id=${doctorId}`;
+    }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    return data.booked || [];
+}
+
+function generateSlots() {
+
+    const slots = [];
+    const startHour = 8;
+    const endHour = 18;
+
+    const duration = 50;
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+
+        const startH = String(hour).padStart(2, "0");
+        const startM = "00";
+
+        const startMinutes = hour * 60;
+        const endMinutes = startMinutes + duration;
+
+        const endH = String(Math.floor(endMinutes / 60)).padStart(2, "0");
+        const endM = String(endMinutes % 60).padStart(2, "0");
+
+        slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+    }
+
+    return slots;
+}
+
+async function renderSlots() {
+
+    const date = datePicker.value;
+    if (!date) return;
+
+    const booked = await getBooked(date);
+    const slots = generateSlots();
+
+    timeSlotsDiv.innerHTML = "";
+
+    slots.forEach(slot => {
+
+        const startTime = slot.split(" - ")[0];
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.innerText = slot;
+        btn.classList.add("time-slot-btn");
+
+        if (booked.includes(startTime)) {
+            btn.disabled = true;
+            btn.classList.add("disabled-slot");
+        }
+
+        btn.onclick = () => {
+
+            document.querySelectorAll(".time-slot-btn")
+                .forEach(b => b.classList.remove("selected"));
+
+            btn.classList.add("selected");
+            selectedTime.value = startTime;
+        };
+
+        timeSlotsDiv.appendChild(btn);
+    });
+}
+
+datePicker.addEventListener("change", renderSlots);
+doctorSelect.addEventListener("change", renderSlots);
+
+</script>
+
+<!-- ===================== -->
+<!-- STYLES -->
+<!-- ===================== -->
+<style>
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.time-slot-btn {
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+.time-slot-btn.selected {
+    background: #4da3ff;
+    color: white;
+}
+
+.time-slot-btn:disabled,
+.disabled-slot {
+    background: #ddd;
+    color: #888;
+    cursor: not-allowed;
+}
+</style>
 
 {% endblock %}

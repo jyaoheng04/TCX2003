@@ -68,11 +68,12 @@
     <div class="patient-field">
         <label>Select Date</label>
         <input type="date"
-               id="datePicker"
-               name="date"
-               value="{{ form_data.get('date', '') }}"
-               class="{% if errors.get('date') %}input-error{% endif %}"
-               required>
+            id="datePicker"
+            name="date"
+            value="{{ form_data.get('date', '') }}"
+            min="{{ (datetime.utcnow().date()) }}"
+            class="{% if errors.get('date') %}input-error{% endif %}"
+            required>
 
         {% if errors.get('date') %}
         <div class="field-error">{{ errors['date'] }}</div>
