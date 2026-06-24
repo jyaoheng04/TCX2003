@@ -23,7 +23,6 @@ def get_db():
         port=os.getenv("DB_PORT")
     )
 
-
 # ======================
 # VIEW APPOINTMENTS
 # ======================

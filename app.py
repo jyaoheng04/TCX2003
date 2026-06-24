@@ -65,11 +65,6 @@ def nurse_wards():
 def nurse_medication():
     return render_template('nurse/medication.html', role="nurse",active_page="medication")
 
-# PATIENT
-# @app.route('/patient/dashboard')
-# def patient():
-#     return render_template('patient/dashboard.html', role="patient",active_page="dashboard")
-
 # ADMIN
 @app.route('/admin/dashboard')
 def admin():
