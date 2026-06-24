@@ -56,7 +56,7 @@ def appointments():
             a.status,
             ms.full_name AS doctor_name
         FROM appointment a
-        JOIN medical_staff ms
+        LEFT JOIN medical_staff ms
             ON a.doctor_id = ms.staff_id
         WHERE a.patient_id = %s
         ORDER BY a.appointment_date ASC
@@ -111,6 +111,11 @@ def create():
 
         doctor_id = request.form.get('doctor_id')
         appointment_type = request.form.get('appointment_type')
+
+        # only consultation needs doctor
+        if appointment_type != "consultation":
+            doctor_id = None
+
         date = request.form.get('date')
         time = request.form.get('time')
         reason = request.form.get('reason')
@@ -120,7 +125,7 @@ def create():
         # ======================
         # FIELD VALIDATION
         # ======================
-        if not doctor_id:
+        if appointment_type == "consultation" and not doctor_id:
             errors["doctor_id"] = "Doctor is required."
 
         if not appointment_type:
@@ -206,7 +211,7 @@ def create():
         """, (
             appointment_id,
             patient_id,
-            doctor_id,
+            doctor_id if appointment_type == "consultation" else None,
             'appointment',
             appointment_type,
             appointment_datetime
@@ -667,7 +672,7 @@ def dashboard():
     cursor.execute("""
         SELECT a.*, m.full_name AS doctor_name, m.department
         FROM appointment a
-        JOIN medical_staff m ON a.doctor_id = m.staff_id
+        LEFT JOIN medical_staff m ON a.doctor_id = m.staff_id
         WHERE a.patient_id = %s
         AND DATE(a.appointment_date) = %s
         AND a.status = 'booked'

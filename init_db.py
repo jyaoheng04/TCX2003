@@ -84,7 +84,7 @@ cursor.execute("""
 CREATE TABLE appointment (
     appointment_id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id INT,
-    doctor_id INT,
+    doctor_id INT NULL,
     appointment_type ENUM('consultation','vaccination','blood_test','urine_test'),
     reason TEXT,
     appointment_date DATETIME,

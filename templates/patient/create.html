@@ -13,11 +13,13 @@
 <form class="patient-form" method="POST">
 
     <!-- DOCTOR -->
-    <div class="patient-field">
+    <div class="patient-field" id="doctorField">
+
         <label>Doctor</label>
+
         <select name="doctor_id"
-                class="{% if errors.get('doctor_id') %}input-error{% endif %}"
-                required>
+                id="doctorSelect"
+                class="{% if errors.get('doctor_id') %}input-error{% endif %}">
 
             <option value="">-- Select Doctor --</option>
 
@@ -27,11 +29,13 @@
                 {{ doctor.full_name }}
             </option>
             {% endfor %}
+
         </select>
 
         {% if errors.get('doctor_id') %}
         <div class="field-error">{{ errors['doctor_id'] }}</div>
         {% endif %}
+
     </div>
 
     <!-- APPOINTMENT TYPE -->
@@ -124,6 +128,9 @@ const datePicker = document.getElementById("datePicker");
 const timeSlotsDiv = document.getElementById("timeSlots");
 const selectedTime = document.getElementById("selectedTime");
 const appointmentType = document.getElementById("appointmentType");
+
+const doctorField = document.getElementById("doctorField");
+const doctorSelect = document.getElementById("doctorSelect");
 
 async function getBooked(date) {
     const res = await fetch(`/patient/available-times?date=${date}`);
@@ -219,8 +226,34 @@ async function renderSlots() {
     });
 }
 
+function toggleDoctorField() {
+
+    const type = appointmentType.value;
+
+    if (type === "consultation") {
+
+        doctorField.style.display = "block";
+        doctorSelect.required = true;
+
+    }
+
+    else {
+
+        doctorField.style.display = "none";
+        doctorSelect.required = false;
+        doctorSelect.value = "";
+    }
+}
+
 datePicker.addEventListener("change", renderSlots);
-appointmentType.addEventListener("change", renderSlots);
+
+appointmentType.addEventListener("change", () => {
+    toggleDoctorField();
+    renderSlots();
+});
+
+toggleDoctorField();
+
 </script>
 
 <!-- ===================== -->
