@@ -324,6 +324,12 @@ def edit_appointment(appointment_id):
     if request.method == "POST":
 
         doctor_id = request.form.get("doctor_id")
+        if doctor_id == "":
+            doctor_id = None
+
+        if doctor_id == "" or doctor_id is None:
+            doctor_id = None
+
         date = request.form.get("date")
         time = request.form.get("time")
 
@@ -356,6 +362,26 @@ def edit_appointment(appointment_id):
             db.close()
 
             return redirect('/patient/appointments')
+        
+        # ============================
+        # enforce type-based conflict rule
+        # ============================
+        cursor.execute("""
+            SELECT COUNT(*) as cnt
+            FROM appointment
+            WHERE appointment_date = %s
+            AND appointment_type = %s
+            AND appointment_id != %s
+            AND queue_status = 'waiting'
+        """, (new_datetime, appointment["appointment_type"], appointment_id))
+
+        conflict = cursor.fetchone()
+
+        if conflict["cnt"] > 0:
+            flash("This time slot is already booked for this test type.", "error")
+            cursor.close()
+            db.close()
+            return redirect('/patient/appointments')
 
         # update appointment
         cursor.execute("""
@@ -387,6 +413,7 @@ def edit_appointment(appointment_id):
         "patient/edit.html",
         appointment=appointment,
         doctors=doctors,
+        appointment_type=appointment["appointment_type"],
         role="patient",
         active_page="appointments"
     )
@@ -634,7 +661,7 @@ def available_times():
         return {"booked": []}
 
     # ============================
-    # CONSULTATION → check by doctor
+    # CONSULTATION → per doctor
     # ============================
     if appointment_type == "consultation":
 
@@ -650,7 +677,7 @@ def available_times():
         """, (date, doctor_id))
 
     # ============================
-    # BLOOD / URINE TEST → global check
+    # BLOOD + URINE SEPARATION
     # ============================
     else:
 
@@ -756,19 +783,21 @@ def available_times_edit():
 
     date = request.args.get("date")
     doctor_id = request.args.get("doctor_id")
+    appointment_type = request.args.get("appointment_type")
 
     if not date:
         return {"booked": []}
 
-    # ONLY FUTURE DATES ALLOWED 
     today = datetime.now().date()
     selected_date = datetime.strptime(date, "%Y-%m-%d").date()
 
     if selected_date <= today:
         return {"booked": []}
 
-    # doctor-specific check (same logic as create)
-    if doctor_id:
+    # ============================
+    # CONSULTATION
+    # ============================
+    if appointment_type == "consultation" and doctor_id:
 
         cursor.execute("""
             SELECT appointment_date
@@ -778,6 +807,9 @@ def available_times_edit():
             AND queue_status = 'waiting'
         """, (date, doctor_id))
 
+    # ============================
+    # BLOOD / URINE SEPARATION
+    # ============================
     else:
 
         cursor.execute("""
@@ -785,7 +817,8 @@ def available_times_edit():
             FROM appointment
             WHERE DATE(appointment_date) = %s
             AND queue_status = 'waiting'
-        """, (date,))
+            AND appointment_type = %s
+        """, (date, appointment_type))
 
     results = cursor.fetchall()
 

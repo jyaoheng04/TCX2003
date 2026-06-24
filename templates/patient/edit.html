@@ -13,29 +13,37 @@
 <form method="POST" class="patient-form">
 
     <!-- DOCTOR -->
-    <div class="patient-field" id="doctorField">
+    {% if appointment.appointment_type == "consultation" %}
 
-        <label>Doctor</label>
+        <div class="patient-field" id="doctorField">
 
-        <select name="doctor_id"
-                id="doctorSelect"
-                required>
+            <label>Doctor</label>
 
-            {% for doctor in doctors %}
+            <select name="doctor_id"
+                    id="doctorSelect"
+                    required>
 
-                <option value="{{ doctor.staff_id }}"
-                    {% if doctor.staff_id == appointment.doctor_id %}
-                        selected
-                    {% endif %}
-                >
-                    {{ doctor.full_name }}
-                </option>
+                {% for doctor in doctors %}
 
-            {% endfor %}
+                    <option value="{{ doctor.staff_id }}"
+                        {% if doctor.staff_id == appointment.doctor_id %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ doctor.full_name }}
+                    </option>
 
-        </select>
+                {% endfor %}
 
-    </div>
+            </select>
+
+        </div>
+
+        {% else %}
+
+        <!-- no doctor needed for lab tests -->
+
+        {% endif %}
 
     <!-- DATE -->
     <div class="patient-field">
@@ -82,21 +90,21 @@
 const datePicker = document.getElementById("datePicker");
 const timeSlotsDiv = document.getElementById("timeSlots");
 const selectedTime = document.getElementById("selectedTime");
-const doctorSelect = document.getElementById("doctorSelect");
+
+const doctorSelect = document.getElementById("doctorSelect"); // may be null
+const appointmentType = "{{ appointment.appointment_type }}";
 
 const today = new Date();
-today.setDate(today.getDate() + 1); // tomorrow minimum
-
+today.setDate(today.getDate() + 1);
 datePicker.min = today.toISOString().split("T")[0];
 
 async function getBooked(date) {
 
-    const doctorId = doctorSelect.value;
+    let url = `/patient/available-times-edit?date=${date}&appointment_type=${appointmentType}`;
 
-    let url = `/patient/available-times-edit?date=${date}`;
-
-    if (doctorId) {
-        url += `&doctor_id=${doctorId}`;
+    // ONLY add doctor if it exists (consultation only)
+    if (appointmentType === "consultation" && doctorSelect) {
+        url += `&doctor_id=${doctorSelect.value}`;
     }
 
     const res = await fetch(url);
@@ -108,23 +116,54 @@ async function getBooked(date) {
 function generateSlots() {
 
     const slots = [];
-    const startHour = 8;
-    const endHour = 18;
+    const start = 8 * 60;   // 08:00
+    const end = 18 * 60;    // 18:00
 
-    const duration = 50;
+    const type = appointmentType;
 
-    for (let hour = startHour; hour <= endHour; hour++) {
+    // =========================
+    // CONSULTATION (50 min, hourly start)
+    // =========================
+    if (type === "consultation") {
 
-        const startH = String(hour).padStart(2, "0");
-        const startM = "00";
+        const duration = 50;
 
-        const startMinutes = hour * 60;
-        const endMinutes = startMinutes + duration;
+        for (let hour = 8; hour <= 18; hour++) {
 
-        const endH = String(Math.floor(endMinutes / 60)).padStart(2, "0");
-        const endM = String(endMinutes % 60).padStart(2, "0");
+            const startMinutes = hour * 60;
+            const endMinutes = startMinutes + duration;
 
-        slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+            const startH = String(hour).padStart(2, "0");
+            const startM = "00";
+
+            const endH = String(Math.floor(endMinutes / 60)).padStart(2, "0");
+            const endM = String(endMinutes % 60).padStart(2, "0");
+
+            slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+        }
+    }
+
+    // =========================
+    // BLOOD / URINE (30 min rolling slots)
+    // =========================
+    else {
+
+        const duration = 30;
+        let current = start;
+
+        while (current + duration <= end) {
+
+            const startH = String(Math.floor(current / 60)).padStart(2, "0");
+            const startM = String(current % 60).padStart(2, "0");
+
+            const endTime = current + duration;
+            const endH = String(Math.floor(endTime / 60)).padStart(2, "0");
+            const endM = String(endTime % 60).padStart(2, "0");
+
+            slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+
+            current += duration;
+        }
     }
 
     return slots;
@@ -167,8 +206,12 @@ async function renderSlots() {
     });
 }
 
+// SAFE event bindings
 datePicker.addEventListener("change", renderSlots);
-doctorSelect.addEventListener("change", renderSlots);
+
+if (doctorSelect) {
+    doctorSelect.addEventListener("change", renderSlots);
+}
 
 </script>
 
