@@ -241,7 +241,7 @@ def create():
                 appointment_type,
                 None,
                 None,
-                'pending'
+                None
             ))
 
         db.commit()
@@ -555,7 +555,7 @@ def records():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    patient_id = 1   # replace with session later
+    patient_id = 1
 
     cursor.execute("""
         SELECT
@@ -566,14 +566,15 @@ def records():
             c.prescription_notes,
             c.medical_bill,
             c.consultation_time,
-            ms.full_name AS doctor_name
+            ms.full_name AS doctor_name,
+            lr.test_type AS lab_test_type,
+            lr.result_status AS lab_result_status
         FROM consultation c
-        JOIN medical_staff ms
+        LEFT JOIN medical_staff ms
             ON c.staff_id = ms.staff_id
-        JOIN appointment a
-            ON c.appointment_id = a.appointment_id
+        LEFT JOIN lab_result lr
+            ON lr.consultation_id = c.consultation_id
         WHERE c.patient_id = %s
-        AND a.queue_status = 'completed'
         ORDER BY c.consultation_time DESC
     """, (patient_id,))
 
@@ -581,6 +582,44 @@ def records():
 
     cursor.close()
     db.close()
+
+    for record in records:
+
+        # parse bill
+        bill_data = {
+            "consultation_fee": 18.5,
+            "medications": [],
+            "total_price": 0.0
+        }
+        try:
+            raw = record.get("medical_bill")
+            if raw and isinstance(raw, str) and raw.strip().startswith("{"):
+                bill_data.update(json.loads(raw))
+            elif raw:
+                bill_data["total_price"] = float(raw)
+        except Exception:
+            pass
+        bill_data["total_price"] = float(bill_data.get("total_price", 0) or 0)
+        record["bill_data"] = bill_data
+
+        # parse prescription
+        rx = []
+        try:
+            raw_rx = record.get("prescription_notes")
+            if raw_rx:
+                parsed = json.loads(raw_rx)
+                if isinstance(parsed, list):
+                    rx = parsed
+        except Exception:
+            pass
+        record["parsed_prescription"] = rx
+
+        # if a lab test was ordered alongside the consultation, show both
+        if record.get("lab_test_type"):
+            lab_label = record["lab_test_type"].replace("_", " ").title()
+            record["service_label"] = f"Consultation + {lab_label}"
+        else:
+            record["service_label"] = record["service_type"].replace("_", " ").title() if record["service_type"] else "—"
 
     return render_template(
         "patient/records.html",
@@ -600,47 +639,130 @@ def view_report(consultation_id):
 
     patient_id = 1
 
+    # main consultation
     cursor.execute("""
         SELECT
-            lr.lab_result_id,
-            lr.test_type,
-            lr.result_details,
-            lr.result_date,
-            lr.result_status,
-
             c.consultation_id,
-            c.doctor_notes,
+            c.service_type,
             c.symptoms,
+            c.doctor_notes,
             c.prescription_notes,
+            c.medical_bill,
+            c.temperature,
+            c.blood_pressure,
             c.consultation_time,
-
             ms.full_name AS doctor_name
-        FROM lab_result lr
-        JOIN consultation c
-            ON lr.consultation_id = c.consultation_id
-        JOIN medical_staff ms
+        FROM consultation c
+        LEFT JOIN medical_staff ms
             ON c.staff_id = ms.staff_id
         WHERE c.consultation_id = %s
         AND c.patient_id = %s
     """, (consultation_id, patient_id))
 
-    report = cursor.fetchone()
+    record = cursor.fetchone()
 
-    if report and report.get("result_details"):
-        try:
-            report["parsed_results"] = json.loads(report["result_details"])
-        except json.JSONDecodeError:
-            report["parsed_results"] = {}
-    else:
-        report = report or {}
-        report["parsed_results"] = {}
+    if not record:
+        cursor.close()
+        db.close()
+        return redirect('/patient/records')
+
+    # lab result for this consultation (if any)
+    cursor.execute("""
+        SELECT
+            lab_result_id,
+            test_type,
+            result_details,
+            result_date,
+            result_status
+        FROM lab_result
+        WHERE consultation_id = %s
+    """, (consultation_id,))
+
+    lab = cursor.fetchone()
+
+    # vitals history for charts
+    cursor.execute("""
+        SELECT
+            consultation_time,
+            temperature,
+            blood_pressure
+        FROM consultation
+        WHERE patient_id = %s
+        ORDER BY consultation_time ASC
+    """, (patient_id,))
+
+    rows = cursor.fetchall()
 
     cursor.close()
     db.close()
 
+    # parse bill
+    bill_data = {
+        "consultation_fee": 18.5,
+        "medications": [],
+        "total_price": 0.0
+    }
+    try:
+        raw = record.get("medical_bill")
+        if raw and isinstance(raw, str) and raw.strip().startswith("{"):
+            bill_data.update(json.loads(raw))
+        elif raw:
+            bill_data["total_price"] = float(raw)
+    except Exception:
+        pass
+    bill_data["total_price"] = float(bill_data.get("total_price", 0) or 0)
+
+    # parse prescription
+    rx = []
+    try:
+        raw_rx = record.get("prescription_notes")
+        if raw_rx:
+            parsed = json.loads(raw_rx)
+            if isinstance(parsed, list):
+                rx = parsed
+    except Exception:
+        pass
+
+    # parse lab result
+    if lab and lab.get("result_details"):
+        try:
+            lab["parsed_results"] = json.loads(lab["result_details"])
+        except Exception:
+            lab["parsed_results"] = {}
+    elif lab:
+        lab["parsed_results"] = {}
+
+    # build chart data
+    systolic = []
+    diastolic = []
+    temperatures = []
+
+    for r in rows:
+        x = r["consultation_time"].strftime("%Y-%m-%d %H:%M:%S")
+
+        if r["blood_pressure"]:
+            try:
+                sys, dia = r["blood_pressure"].split("/")
+                systolic.append({"x": x, "y": int(sys)})
+                diastolic.append({"x": x, "y": int(dia)})
+            except Exception:
+                pass
+
+        try:
+            if r["temperature"]:
+                temperatures.append({"x": x, "y": float(r["temperature"])})
+        except Exception:
+            pass
+
     return render_template(
         "patient/report.html",
-        report=report,
+        record=record,
+        bill_data=bill_data,
+        prescription=rx,
+        lab=lab,
+        systolic=systolic,
+        diastolic=diastolic,
+        temperatures=temperatures,
         role="patient"
     )
 

@@ -146,7 +146,7 @@ CREATE TABLE consultation (
     symptoms TEXT,
     doctor_notes TEXT,
     prescription_notes TEXT,
-    medical_bill DECIMAL(10,2),
+    medical_bill TEXT,
     rating INT,
     consultation_time DATETIME,
 
@@ -167,7 +167,7 @@ CREATE TABLE lab_result (
     test_type ENUM('blood_test','urine_test'),
     result_details TEXT,
     result_date DATETIME,
-    result_status ENUM('pending','ready'),
+    result_status ENUM('normal','abnormal'),
 
     FOREIGN KEY (consultation_id) REFERENCES consultation(consultation_id)
 )
