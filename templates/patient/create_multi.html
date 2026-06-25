@@ -1,0 +1,408 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="patient-title">Book Multiple Appointments</h2>
+
+<p style="color:#64748b; margin-bottom:16px;">
+    All appointments must fall on the same day.
+    <a href="/patient/create" style="color:#3b82f6;">Book individually instead →</a>
+</p>
+
+<div class="patient-form-card">
+<form class="patient-form" method="POST">
+
+    <!-- SHARED DATE -->
+    <div class="patient-field">
+        <label>Appointment Date</label>
+        <input type="date"
+               id="sharedDate"
+               name="shared_date"
+               value="{{ form_data.get('shared_date', '') }}"
+               min="{{ datetime.utcnow().date() }}"
+               class="{% if errors.get('shared_date') %}input-error{% endif %}"
+               required>
+        {% if errors.get('shared_date') %}
+            <div class="field-error">{{ errors['shared_date'] }}</div>
+        {% endif %}
+    </div>
+
+    <!-- APPOINTMENT TYPES SELECTION -->
+    <div class="patient-field">
+        <label>Select Appointment Types</label>
+        {% if errors.get('types') %}
+            <div class="field-error">{{ errors['types'] }}</div>
+        {% endif %}
+
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:8px;">
+
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" name="appointment_types" value="consultation"
+                    id="chk_consultation"
+                    {% if 'consultation' in (form_data.getlist('appointment_types') if form_data else []) %}checked{% endif %}>
+                Consultation
+            </label>
+
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" name="appointment_types" value="blood_test"
+                    id="chk_blood_test"
+                    {% if 'blood_test' in (form_data.getlist('appointment_types') if form_data else []) %}checked{% endif %}>
+                Blood Test
+            </label>
+
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" name="appointment_types" value="urine_test"
+                    id="chk_urine_test"
+                    {% if 'urine_test' in (form_data.getlist('appointment_types') if form_data else []) %}checked{% endif %}>
+                Urine Test
+            </label>
+
+        </div>
+    </div>
+
+    <!-- DOCTOR (consultation only) -->
+    <div class="patient-field" id="doctorField" style="display:none;">
+        <label>Doctor</label>
+        <select name="doctor_id" id="doctorSelect"
+                class="{% if errors.get('doctor_id') %}input-error{% endif %}">
+            <option value="">-- Select Doctor --</option>
+            {% for doctor in doctors %}
+            <option value="{{ doctor.staff_id }}"
+                {% if form_data.get('doctor_id') == doctor.staff_id|string %}selected{% endif %}>
+                {{ doctor.full_name }}
+            </option>
+            {% endfor %}
+        </select>
+        {% if errors.get('doctor_id') %}
+            <div class="field-error">{{ errors['doctor_id'] }}</div>
+        {% endif %}
+    </div>
+
+    <!-- TIME SLOTS PER TYPE -->
+    <div id="slotsContainer"></div>
+
+    <!-- REASON -->
+    <div class="patient-field">
+        <label>Reason for Visit</label>
+        <input type="text" name="reason"
+               value="{{ form_data.get('reason', '') }}"
+               class="{% if errors.get('reason') %}input-error{% endif %}"
+               required>
+        {% if errors.get('reason') %}
+            <div class="field-error">{{ errors['reason'] }}</div>
+        {% endif %}
+    </div>
+
+    <div class="patient-actions">
+        <button type="submit" class="patient-btn patient-btn--primary">
+            Confirm Booking
+        </button>
+        <a href="/patient/appointments" class="patient-btn patient-btn--secondary">
+            Cancel
+        </a>
+    </div>
+
+</form>
+</div>
+
+<script>
+const sharedDate    = document.getElementById("sharedDate");
+const doctorField   = document.getElementById("doctorField");
+const doctorSelect  = document.getElementById("doctorSelect");
+const slotsContainer = document.getElementById("slotsContainer");
+
+const checkboxes = {
+    consultation: document.getElementById("chk_consultation"),
+    blood_test:   document.getElementById("chk_blood_test"),
+    urine_test:   document.getElementById("chk_urine_test")
+};
+
+// tracks which time is selected per type
+const selectedTimes = {};
+
+// pre-fill from form_data on error re-render
+const preselected = {
+    consultation: "{{ form_data.get('time_consultation', '') }}",
+    blood_test:   "{{ form_data.get('time_blood_test', '') }}",
+    urine_test:   "{{ form_data.get('time_urine_test', '') }}"
+};
+
+const errors = {
+    consultation: "{{ errors.get('time_consultation', '') }}",
+    blood_test:   "{{ errors.get('time_blood_test', '') }}",
+    urine_test:   "{{ errors.get('time_urine_test', '') }}"
+};
+
+function getDuration(type) {
+    return type === "consultation" ? 50 : 30;
+}
+
+function generateSlots(type) {
+    const slots = [];
+    const duration = getDuration(type);
+    let start = 8 * 60;
+    const end = 18 * 60;
+
+    if (type === "consultation") {
+        for (let hour = 8; hour <= 18; hour++) {
+            const endMin = hour * 60 + duration;
+            slots.push({
+                label: `${pad(hour)}:00 - ${pad(Math.floor(endMin/60))}:${pad(endMin%60)}`,
+                value: `${pad(hour)}:00`
+            });
+        }
+    } else {
+        while (start + duration <= end) {
+            const endMin = start + duration;
+            slots.push({
+                label: `${pad(Math.floor(start/60))}:${pad(start%60)} - ${pad(Math.floor(endMin/60))}:${pad(endMin%60)}`,
+                value: `${pad(Math.floor(start/60))}:${pad(start%60)}`
+            });
+            start += duration;
+        }
+    }
+    return slots;
+}
+
+function pad(n) { return String(n).padStart(2, "0"); }
+
+function toMinutes(timeStr) {
+    const [h, m] = timeStr.split(":").map(Number);
+    return h * 60 + m;
+}
+
+function clashesWithSelected(type, slotValue) {
+    // check if this slot clashes with any OTHER type's selected time
+    const slotStart = toMinutes(slotValue);
+    const slotEnd   = slotStart + getDuration(type);
+
+    for (const [otherType, otherTime] of Object.entries(selectedTimes)) {
+        if (otherType === type) continue;
+        if (!otherTime) continue;
+
+        const otherStart = toMinutes(otherTime);
+        const otherEnd   = otherStart + getDuration(otherType);
+
+        if (slotStart < otherEnd && otherStart < slotEnd) {
+            return otherType;
+        }
+    }
+    return null;
+}
+
+async function getBooked(type) {
+    const date = sharedDate.value;
+    if (!date) return [];
+
+    let url = `/patient/available-times?date=${date}&appointment_type=${type}`;
+    if (type === "consultation" && doctorSelect.value) {
+        url += `&doctor_id=${doctorSelect.value}`;
+    }
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        return data.booked || [];
+    } catch {
+        return [];
+    }
+}
+
+async function renderSlotsForType(type, container) {
+    const date = sharedDate.value;
+    if (!date) return;
+
+    const booked = await getBooked(type);
+    const slots  = generateSlots(type);
+    const label  = type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+    // hidden input to carry the selected time
+    let hiddenInput = container.querySelector(`input[name="time_${type}"]`);
+    if (!hiddenInput) {
+        hiddenInput = document.createElement("input");
+        hiddenInput.type  = "hidden";
+        hiddenInput.name  = `time_${type}`;
+        container.appendChild(hiddenInput);
+    }
+
+    // slot grid wrapper
+    let gridWrapper = container.querySelector(".slot-grid-wrapper");
+    if (!gridWrapper) {
+        gridWrapper = document.createElement("div");
+        gridWrapper.className = "slot-grid-wrapper";
+        container.insertBefore(gridWrapper, hiddenInput);
+    }
+    gridWrapper.innerHTML = "";
+
+    slots.forEach(slot => {
+        const btn = document.createElement("button");
+        btn.type      = "button";
+        btn.innerText = slot.label;
+        btn.classList.add("time-slot-btn");
+
+        const alreadyBooked = booked.includes(slot.value);
+        const clashType     = clashesWithSelected(type, slot.value);
+
+        if (alreadyBooked) {
+            btn.disabled = true;
+            btn.classList.add("disabled-slot");
+            btn.title = "Already booked";
+        } else if (clashType) {
+            btn.disabled = true;
+            btn.classList.add("clash-slot");
+            btn.title = `Clashes with your selected ${clashType.replace(/_/g, " ")} time`;
+        }
+
+        if (slot.value === selectedTimes[type]) {
+            btn.classList.add("selected");
+            hiddenInput.value = slot.value;
+        }
+
+        btn.onclick = async () => {
+            gridWrapper.querySelectorAll(".time-slot-btn")
+                .forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            selectedTimes[type] = slot.value;
+            hiddenInput.value   = slot.value;
+
+            // re-render ALL other active types to update clash highlights
+            await refreshAllSlots(type);
+        };
+
+        gridWrapper.appendChild(btn);
+    });
+}
+
+async function refreshAllSlots(exceptType) {
+    // re-render slots for all OTHER checked types to update clash highlights
+    for (const [type, chk] of Object.entries(checkboxes)) {
+        if (!chk.checked) continue;
+        if (type === exceptType) continue;
+        const container = document.getElementById(`slot_section_${type}`);
+        if (container) await renderSlotsForType(type, container);
+    }
+}
+
+async function rebuildSlotsContainer() {
+    slotsContainer.innerHTML = "";
+
+    for (const [type, chk] of Object.entries(checkboxes)) {
+        if (!chk.checked) continue;
+
+        const label = type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+        const section = document.createElement("div");
+        section.className = "patient-field";
+        section.id = `slot_section_${type}`;
+
+        const heading = document.createElement("label");
+        heading.textContent = `${label} — Select Time`;
+        section.appendChild(heading);
+
+        if (errors[type]) {
+            const errDiv = document.createElement("div");
+            errDiv.className = "field-error";
+            errDiv.textContent = errors[type];
+            section.appendChild(errDiv);
+        }
+
+        const grid = document.createElement("div");
+        grid.className = "slot-grid-wrapper time-slot-grid";
+        section.appendChild(grid);
+
+        const hidden = document.createElement("input");
+        hidden.type  = "hidden";
+        hidden.name  = `time_${type}`;
+        section.appendChild(hidden);
+
+        slotsContainer.appendChild(section);
+
+        // restore pre-selected time if available
+        if (preselected[type]) {
+            selectedTimes[type] = preselected[type];
+        }
+
+        await renderSlotsForType(type, section);
+    }
+}
+
+function toggleDoctorField() {
+    if (checkboxes.consultation.checked) {
+        doctorField.style.display = "block";
+        doctorSelect.required = true;
+    } else {
+        doctorField.style.display = "none";
+        doctorSelect.required = false;
+        doctorSelect.value = "";
+    }
+}
+
+// event listeners
+sharedDate.addEventListener("change", async () => {
+    Object.keys(selectedTimes).forEach(k => delete selectedTimes[k]);
+    await rebuildSlotsContainer();
+});
+
+Object.values(checkboxes).forEach(chk => {
+    chk.addEventListener("change", async () => {
+        toggleDoctorField();
+        // clear selected time for unchecked type
+        for (const [type, c] of Object.entries(checkboxes)) {
+            if (!c.checked) delete selectedTimes[type];
+        }
+        await rebuildSlotsContainer();
+    });
+});
+
+doctorSelect.addEventListener("change", async () => {
+    if (checkboxes.consultation.checked) {
+        const section = document.getElementById("slot_section_consultation");
+        if (section) await renderSlotsForType("consultation", section);
+    }
+});
+
+// init
+toggleDoctorField();
+if (sharedDate.value) rebuildSlotsContainer();
+</script>
+
+<style>
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 8px;
+}
+.time-slot-btn {
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+}
+.time-slot-btn.selected {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+.time-slot-btn:disabled.disabled-slot {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+.time-slot-btn:disabled.clash-slot {
+    background: #fef3c7;
+    color: #92400e;
+    cursor: not-allowed;
+    border-color: #fcd34d;
+}
+.input-error { border: 1px solid #e74c3c !important; background-color: #fff5f5; }
+.field-error { color: #e74c3c; font-size: 13px; margin-top: 5px; }
+</style>
+
+{% endblock %}

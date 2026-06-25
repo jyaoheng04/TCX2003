@@ -953,3 +953,178 @@ def available_times_edit():
     db.close()
 
     return {"booked": booked_times}
+
+# ======================
+# CREATE MULTI APPOINTMENT
+# ======================
+@patient_bp.route('/create-multi', methods=['GET', 'POST'])
+def create_multi():
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT staff_id, full_name
+        FROM medical_staff
+        WHERE role = 'doctor'
+    """)
+    doctors = cursor.fetchall()
+
+    if request.method == 'POST':
+
+        patient_id = 1
+        errors = {}
+
+        selected_date = request.form.get('shared_date')
+        reason = request.form.get('reason')
+        doctor_id = request.form.get('doctor_id') or None
+
+        # which types were selected
+        types_selected = request.form.getlist('appointment_types')
+
+        if not selected_date:
+            errors['shared_date'] = "Date is required."
+
+        if not reason:
+            errors['reason'] = "Reason is required."
+
+        if not types_selected:
+            errors['types'] = "Please select at least one appointment type."
+
+        if 'consultation' in types_selected and not doctor_id:
+            errors['doctor_id'] = "Doctor is required for consultation."
+
+        # collect times per type
+        times = {}
+        for t in types_selected:
+            time_val = request.form.get(f'time_{t}')
+            if not time_val:
+                errors[f'time_{t}'] = f"Time is required for {t.replace('_', ' ').title()}."
+            else:
+                times[t] = time_val
+
+        # validate no clashes between selected types in this form
+        if not errors:
+            parsed_times = {}
+            for t, time_val in times.items():
+                try:
+                    dt = datetime.strptime(f"{selected_date} {time_val}", "%Y-%m-%d %H:%M")
+                    if dt <= datetime.now():
+                        errors[f'time_{t}'] = "Appointment must be in the future."
+                    duration = 50 if t == 'consultation' else 30
+                    parsed_times[t] = (dt, dt + timedelta(minutes=duration))
+                except ValueError:
+                    errors[f'time_{t}'] = "Invalid time."
+
+            # check clashes between types in this form
+            if not errors:
+                type_list = list(parsed_times.keys())
+                for i in range(len(type_list)):
+                    for j in range(i + 1, len(type_list)):
+                        t1, t2 = type_list[i], type_list[j]
+                        start1, end1 = parsed_times[t1]
+                        start2, end2 = parsed_times[t2]
+                        if start1 < end2 and start2 < end1:
+                            errors[f'time_{t2}'] = (
+                                f"{t2.replace('_',' ').title()} clashes with "
+                                f"{t1.replace('_',' ').title()} time."
+                            )
+
+        if errors:
+            cursor.close()
+            db.close()
+            return render_template(
+                'patient/create_multi.html',
+                doctors=doctors,
+                errors=errors,
+                form_data=request.form,
+                datetime=datetime,
+                role="patient",
+                active_page="appointments"
+            )
+
+        # ======================
+        # INSERT SINGLE CONSULTATION
+        # ======================
+        consult_time = datetime.strptime(
+            f"{selected_date} {times.get('consultation', list(times.values())[0])}",
+            "%Y-%m-%d %H:%M"
+        )
+
+        cursor.execute("""
+            INSERT INTO consultation (
+                patient_id, staff_id,
+                visit_type, service_type,
+                consultation_time
+            ) VALUES (%s, %s, 'appointment', 'consultation', %s)
+        """, (
+            patient_id,
+            doctor_id if 'consultation' in types_selected else None,
+            consult_time
+        ))
+
+        consultation_id = cursor.lastrowid
+
+        # ======================
+        # INSERT APPOINTMENT + LAB RESULT PER TYPE
+        # ======================
+        for t in types_selected:
+
+            appt_dt = datetime.strptime(
+                f"{selected_date} {times[t]}",
+                "%Y-%m-%d %H:%M"
+            )
+
+            cursor.execute("""
+                INSERT INTO appointment (
+                    patient_id, doctor_id,
+                    appointment_type, reason,
+                    appointment_date, queue_status,
+                    consultation_room
+                ) VALUES (%s, %s, %s, %s, %s, 'waiting', %s)
+            """, (
+                patient_id,
+                doctor_id if t == 'consultation' else None,
+                t,
+                reason,
+                appt_dt,
+                "Room 3A"
+            ))
+
+            appointment_id = cursor.lastrowid
+
+            # link appointment to consultation
+            cursor.execute("""
+                UPDATE consultation
+                SET appointment_id = %s
+                WHERE consultation_id = %s
+                AND appointment_id IS NULL
+            """, (appointment_id, consultation_id))
+
+            # insert lab result for lab types
+            if t in ('blood_test', 'urine_test'):
+                cursor.execute("""
+                    INSERT INTO lab_result (
+                        consultation_id, test_type,
+                        result_details, result_date, result_status
+                    ) VALUES (%s, %s, NULL, NULL, NULL)
+                """, (consultation_id, t))
+
+        db.commit()
+        cursor.close()
+        db.close()
+
+        return redirect('/patient/appointments')
+
+    cursor.close()
+    db.close()
+
+    return render_template(
+        'patient/create_multi.html',
+        doctors=doctors,
+        errors={},
+        form_data={},
+        datetime=datetime,
+        role="patient",
+        active_page="appointments"
+    )

@@ -12,6 +12,10 @@
     + Book New Appointment
 </a>
 
+<a href="/patient/create-multi" class="patient-btn-link" style="margin-left: 10px;">
+    + Book Multiple Appointments
+</a>
+
 <div class="patient-grid">
 
     {% if appointments %}
@@ -29,6 +33,7 @@
                     </h4>
 
                     <p class="patient-queue">
+                        <!-- for cindy: reference to queue number here -->
                         Queue Number: <strong>#{{ appointment.appointment_id }}</strong>
                     </p>
 

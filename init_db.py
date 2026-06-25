@@ -173,6 +173,7 @@ CREATE TABLE lab_result (
 )
 """)
 
+
 conn.commit()
 cursor.close()
 conn.close()
