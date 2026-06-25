@@ -24,6 +24,35 @@ def get_db():
     )
 
 # ======================
+# GET LOGGED IN PATIENT ID
+# ======================
+def get_logged_in_patient_id():
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return None
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT patient_id
+        FROM patient
+        WHERE user_id = %s
+    """, (user_id,))
+
+    patient = cursor.fetchone()
+
+    cursor.close()
+    db.close()
+
+    if patient:
+        return patient["patient_id"]
+
+    return None
+
+# ======================
 # VIEW APPOINTMENTS
 # ======================
 @patient_bp.route('/appointments')
@@ -33,7 +62,12 @@ def appointments():
     cursor = db.cursor(dictionary=True)
 
     # temporary hardcoded patient
-    patient_id = 1
+    # patient_id = 1
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return redirect("/")
 
     # auto-complete appointments whose datetime has passed
     cursor.execute("""
@@ -171,7 +205,12 @@ def create():
         # ======================
         # INSERT APPOINTMENT
         # ======================
-        patient_id = 1
+        # patient_id = 1
+
+        patient_id = get_logged_in_patient_id()
+
+        if not patient_id:
+            return redirect("/")
 
         cursor.execute("""
             INSERT INTO appointment
@@ -273,7 +312,12 @@ def edit_appointment(appointment_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    patient_id = 1
+    # patient_id = 1
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return redirect("/")
 
     # verify ownership
     cursor.execute("""
@@ -428,7 +472,12 @@ def cancel_appointment(appointment_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    patient_id = 1
+    # patient_id = 1
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return redirect("/")
 
     # verify ownership
     cursor.execute("""
@@ -519,7 +568,12 @@ def profile():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    patient_id = 1  
+    # patient_id = 1  
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return redirect("/")
 
     cursor.execute("""
         SELECT
@@ -555,7 +609,12 @@ def records():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    patient_id = 1
+    # patient_id = 1
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return redirect("/")
 
     cursor.execute("""
         SELECT
@@ -637,7 +696,12 @@ def view_report(consultation_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    patient_id = 1
+    # patient_id = 1
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return redirect("/")
 
     # main consultation
     cursor.execute("""
@@ -839,7 +903,13 @@ def dashboard():
 
     cursor = conn.cursor(dictionary=True)
 
-    patient_id = 1
+    # patient_id = 1
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return redirect("/")
+
     today = date.today()
 
     # TODAY APPOINTMENTS
@@ -972,7 +1042,13 @@ def create_multi():
 
     if request.method == 'POST':
 
-        patient_id = 1
+        # patient_id = 1
+
+        patient_id = get_logged_in_patient_id()
+
+        if not patient_id:
+            return redirect("/")
+
         errors = {}
 
         selected_date = request.form.get('shared_date')
