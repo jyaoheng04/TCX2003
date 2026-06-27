@@ -1,11 +1,15 @@
-from flask import Flask, render_template, redirect
+from flask import Blueprint, Flask, render_template, redirect
 from dotenv import load_dotenv
 import os
 import mysql.connector
 
+from routes.auth import auth
+from routes.admin import admin
 load_dotenv()
 
 app = Flask(__name__)
+app.register_blueprint(auth)
+app.register_blueprint(admin)
 
 # SECRET KEY
 app.secret_key = os.getenv("SECRET_KEY")
@@ -19,9 +23,9 @@ db = mysql.connector.connect(
     port=os.getenv("DB_PORT")
 )
 
-@app.route('/')
-def login():
-    return render_template('auth/login.html')
+@app.route('/Register_Staff')
+def register_staff():
+    return render_template('auth/Register_MedicalStaff.html')
 
 # DOCTOR
 @app.route('/doctor/dashboard')
@@ -83,36 +87,6 @@ def patient_records():
 def patient_profile():
     return render_template('patient/profile.html', role="patient",active_page="profile")
 
-# ADMIN
-@app.route('/admin/dashboard')
-def admin():
-    return render_template('admin/dashboard.html', role="admin",active_page="dashboard")
-
-@app.route('/admin/users')
-def admin_users():
-    return render_template('admin/users.html', role="admin",active_page="users")
-
-@app.route("/admin/users/create")
-def admin_user():
-    return render_template("admin/user_create.html", role="admin", active_page="users")
-
-@app.route("/admin/users/edit/<int:id>")
-def admin_user_edit(id):
-    return render_template("admin/user_edit.html", role="admin", active_page="users", id=id)
-
-@app.route('/admin/security')
-def admin_security():
-    return render_template('admin/security.html', role="admin",active_page="security")
-
-
-@app.route('/admin/system')
-def admin_system():
-    return render_template('admin/system.html', role="admin",active_page="system")
-
-
-@app.route('/admin/logs')
-def admin_logs():
-    return render_template('admin/logs.html', role="admin",active_page="logs")
 
 @app.route('/logout')
 def logout():

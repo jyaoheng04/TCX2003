@@ -10,23 +10,27 @@
 
 <div class="admin-form-card">
 
-    <form class="admin-form">
+    <form class="admin-form"
+          method="POST"
+          action="/admin/users/edit/{{ user.user_id }}">
 
         <!-- BASIC INFO -->
         <div class="admin-grid-2">
 
             <div class="admin-field">
                 <label>Full Name</label>
-                <input type="text" value="Dr Tan">
+                <input type="text"
+                       name="full_name"
+                       value="{{ user.full_name }}">
             </div>
 
             <div class="admin-field">
                 <label>Role</label>
-                <select>
-                    <option selected>Doctor</option>
-                    <option>Nurse</option>
-                    <option>Patient</option>
-                    <option>IT Admin</option>
+                <select name="user_type">
+                    <option value="doctor" {% if user.user_type == "doctor" %}selected{% endif %}>Doctor</option>
+                    <option value="nurse" {% if user.user_type == "nurse" %}selected{% endif %}>Nurse</option>
+                    <option value="patient" {% if user.user_type == "patient" %}selected{% endif %}>Patient</option>
+                    <option value="admin" {% if user.user_type == "admin" %}selected{% endif %}>IT Admin</option>
                 </select>
             </div>
 
@@ -36,12 +40,16 @@
 
             <div class="admin-field">
                 <label>Email</label>
-                <input type="email" value="doctor@email.com">
+                <input type="email"
+                       name="email"
+                       value="{{ user.email }}">
             </div>
 
             <div class="admin-field">
                 <label>Phone Number</label>
-                <input type="text" value="+65 9123 4567">
+                <input type="text"
+                       name="phone"
+                       value="{{ user.phone or '' }}">
             </div>
 
         </div>
@@ -51,19 +59,68 @@
 
             <div class="admin-field">
                 <label>Staff / User ID</label>
-                <input type="text" value="DR-1023">
+                <input type="text"
+                       name="staff_id"
+                       value="{{ user.staff_id }}">
             </div>
 
             <div class="admin-field">
                 <label>Department</label>
-                <select>
-                    <option>General</option>
-                    <option>Emergency</option>
-                    <option>Paediatrics</option>
-                    <option>Pharmacy</option>
+                <select id="department" name="department" onchange="updateSpecialisation()">
+                    <option value="general" {% if user.department == "general" %}selected{% endif %}>General</option>
+                    <option value="emergency" {% if user.department == "emergency" %}selected{% endif %}>Emergency</option>
+                    <option value="pediatrics" {% if user.department == "pediatrics" %}selected{% endif %}>Paediatrics</option>
+                    <option value="pharmacy" {% if user.department == "pharmacy" %}selected{% endif %}>Pharmacy</option>
                 </select>
             </div>
 
+            <div class="admin-field">
+                <label>Specialisation</label>
+                <select id="specialisation" name="specialisation">
+                    <option value="">Select specialisation</option>
+
+                    <option value="family_medicine"
+                        {% if user.specialisation == "family_medicine" %}selected{% endif %}>
+                        Family Medicine
+                    </option>
+
+                    <option value="chronic_care"
+                        {% if user.specialisation == "chronic_care" %}selected{% endif %}>
+                        Chronic Care
+                    </option>
+
+                    <option value="trauma"
+                        {% if user.specialisation == "trauma" %}selected{% endif %}>
+                        Trauma
+                    </option>
+
+                    <option value="acute_care"
+                        {% if user.specialisation == "acute_care" %}selected{% endif %}>
+                        Acute Care
+                    </option>
+
+                    <option value="child_health"
+                        {% if user.specialisation == "child_health" %}selected{% endif %}>
+                        Child Health
+                    </option>
+
+                    <option value="neonatology"
+                        {% if user.specialisation == "neonatology" %}selected{% endif %}>
+                        Neonatology
+                    </option>
+
+                    <option value="orthopedic"
+                        {% if user.specialisation == "orthopedic" %}selected{% endif %}>
+                        Orthopedic
+                    </option>
+
+                    <option value="general_surgery"
+                        {% if user.specialisation == "general_surgery" %}selected{% endif %}>
+                        General Surgery
+                    </option>
+
+                </select>
+            </div>
         </div>
 
         <!-- ACCOUNT CONTROL -->
@@ -71,10 +128,10 @@
 
             <div class="admin-field">
                 <label>Account Status</label>
-                <select>
-                    <option>Active</option>
-                    <option>Disabled</option>
-                    <option>Suspended</option>
+                <select name="status">
+                    <option value="active" {% if user.status == "active" %}selected{% endif %}>Active</option>
+                    <option value="disabled" {% if user.status == "disabled" %}selected{% endif %}>Disabled</option>
+                    <option value="suspended" {% if user.status == "suspended" %}selected{% endif %}>Suspended</option>
                 </select>
             </div>
 
@@ -89,16 +146,14 @@
 
         <!-- READ ONLY INFO -->
         <div class="admin-info-box">
-
             <p><strong>Last Login:</strong> 16 May 2026, 10:45 AM</p>
             <p><strong>Account Created:</strong> 01 Jan 2025</p>
-
         </div>
 
         <!-- ACTIONS -->
         <div class="admin-actions">
 
-            <button type="button" class="admin-btn-primary">
+            <button type="submit" class="admin-btn-primary">
                 Update User
             </button>
 
@@ -112,4 +167,43 @@
 
 </div>
 
+{% endblock %}
+{% block extra_js %}
+<script>
+const selectedSpec = "{{ user.specialisation }}";
+
+const specMap = {
+  general: ["Family Medicine", "Chronic Care"],
+  emergency: ["Trauma", "Acute Care"],
+  pediatrics: ["Child Health", "Neonatology"],
+  surgery: ["Orthopedic", "General Surgery"]
+};
+
+function updateSpecialisation(){
+  const dept = document.getElementById("department").value;
+  const spec = document.getElementById("specialisation");
+
+  spec.innerHTML = '<option value="">Select specialisation</option>';
+
+  if(specMap[dept]){
+    specMap[dept].forEach(s => {
+      const val = s.toLowerCase().replace(/\s/g,'_');
+
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = s;
+
+      // ✅ auto-select DB value OR keep selection on change
+      if(val === selectedSpec){
+        opt.selected = true;
+      }
+
+      spec.appendChild(opt);
+    });
+  }
+}
+window.addEventListener("DOMContentLoaded", function () {
+  updateSpecialisation();
+});
+</script>
 {% endblock %}

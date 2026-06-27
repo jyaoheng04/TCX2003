@@ -146,6 +146,32 @@
     background: #dc2626;
 }
 
+#toast-container{
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.toast{
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 13px;
+  background: #ef4444;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.toast.success{
+  background: #22c55e;
+}
+
+.toast.error{
+  background: #ef4444;
+}
 /* ===================== ADMIN CREATE / EDIT FORM (EXTENSION) ===================== */
 
 .admin-form-card {

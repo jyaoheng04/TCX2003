@@ -5,12 +5,15 @@
 {% endblock %}
 
 {% block content %}
+<div id="toast-container"></div>
 
 <h2 class="admin-title">User Management</h2>
 
-<a href="/admin/users/create" class="admin-btn-primary">
-    + Add New User
-</a>
+
+<a class="admin-btn-primary" onclick="copyInvite('nurse')">+ Copy Nurse Invite</a>
+
+<a class="admin-btn-primary" onclick="copyInvite('doctor')">+ Copy Doctor Invite</a>
+
 
 <div class="admin-table-card">
 
@@ -26,61 +29,73 @@
         </thead>
 
         <tbody>
+        {% for user in users %}
+        <tr>
 
-            <tr>
-                <td>
-                    <div class="admin-user">
-                        <div class="admin-avatar">DT</div>
-                        <div>
-                            <p class="admin-name">Dr Tan</p>
-                            <span class="admin-email">drtan@clinic.com</span>
-                        </div>
-                    </div>
-                </td>
+            <td>
+            <div class="admin-user">
+                <div class="admin-avatar">
+                {{ user.email[:2].upper() }}
+                </div>
+                <div>
+                <p class="admin-name">{{ user.email.split('@')[0] }}</p>
+                <span class="admin-email">{{ user.email }}</span>
+                </div>
+            </div>
+            </td>
 
-                <td>
-                    <span class="admin-badge doctor">Doctor</span>
-                </td>
+            <td>
+            <span class="admin-badge {{ user.user_type }}">
+                {{ user.user_type | capitalize }}
+            </span>
+            </td>
 
-                <td>
-                    <span class="admin-status active">Active</span>
-                </td>
+            <td>
+            <span class="admin-status {{ user.status }}">
+                {{ user.status | capitalize }}
+            </span>
+            </td>
 
-                <td>
-                    <a href="/admin/users/edit/1" class="admin-btn edit">Edit</a>
-                    <a href="#" class="admin-btn delete">Delete</a>
-                </td>
-            </tr>
+            <td>
+            <a href="/admin/users/edit/{{ user.user_id }}" class="admin-btn edit">Edit</a>
+            <a href="/admin/users/delete/{{ user.user_id }}" class="admin-btn delete">Delete</a>
+            </td>
 
-            <tr>
-                <td>
-                    <div class="admin-user">
-                        <div class="admin-avatar">ML</div>
-                        <div>
-                            <p class="admin-name">Mary Lee</p>
-                            <span class="admin-email">mary@clinic.com</span>
-                        </div>
-                    </div>
-                </td>
-
-                <td>
-                    <span class="admin-badge nurse">Nurse</span>
-                </td>
-
-                <td>
-                    <span class="admin-status active">Active</span>
-                </td>
-
-                <td>
-                    <a href="/admin/users/edit/2" class="admin-btn edit">Edit</a>
-                    <a href="#" class="admin-btn delete">Delete</a>
-                </td>
-            </tr>
-
+        </tr>
+        {% endfor %}
         </tbody>
 
     </table>
 
 </div>
 
+{% endblock %}
+{% block extra_js %}
+<script>
+function showToast(message, type = "error"){
+  const container = document.getElementById("toast-container");
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+function copyInvite(role){
+  const link = `${window.location.origin}/Register_Staff?role=${role}`;
+
+  navigator.clipboard.writeText(link)
+    .then(() => {
+      showToast(`${role.toUpperCase()} invite copied successfully`, "success");
+    })
+    .catch(() => {
+      showToast(`Failed to copy ${role} invite link`, "error");
+    });
+}
+</script>
 {% endblock %}
