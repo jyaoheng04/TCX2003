@@ -4,9 +4,6 @@ import mysql.connector
 import os
 from dotenv import load_dotenv
 import random
-import json
-import random
-from flask import request, redirect, url_for
 
 load_dotenv()
 

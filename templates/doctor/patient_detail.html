@@ -1,0 +1,131 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<div class="doctor-page">
+
+    <div class="doctor-title">
+        Patient Profile
+    </div>
+
+    <div class="form-card">        
+        <div class="grid">
+            <div class="doctor-title">{{ patient.full_name }}</div>
+            <div>
+                <p><b>NRIC:</b> {{ patient.nric }}</p>
+                <p><b>Phone:</b> {{ patient.phone }}</p>
+                <p><b>Email:</b> {{ patient.email }}</p>
+            </div>
+        </div>
+        <!--BP and Temp Graphs here-->
+        <div class="grid">
+            <div>
+                <h4>Blood Pressure Chart</h4>
+                <canvas id="bpChart"></canvas>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            </div>
+            
+            <div>
+                <h4>Temperature Chart</h4>
+                <canvas id="tempChart"></canvas>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="doctor-title">Medical History</div>
+        <table class="doctor-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Diagnosis</th>
+                    <th>Bill</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for c in consultations %}
+                <tr>
+                    <td>{{ c.consultation_time }}</td>
+                    <td>{{ c.doctor_notes }}</td>
+
+                    <td>
+                        {% set bill = c.medical_bill | tojson %}
+                        ${{c.bill_data.total_price }}
+                    </td>
+
+                    <td>
+                        <a href="/doctor/consult_detail/{{ c.consultation_id }}" class="btn-edit">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+<script>
+(function () {
+
+    const systolicData = {{ systolic | tojson }};
+    const diastolicData = {{ diastolic | tojson }};
+    const temperatureData = {{ temperatures | tojson }};
+
+    const bpCanvas = document.getElementById("bpChart");
+    const tempCanvas = document.getElementById("tempChart");
+
+    if (bpCanvas) {
+        new Chart(bpCanvas, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Systolic",
+                        data: systolicData,
+                        borderColor: "#ef4444",
+                        tension: 0.3
+                    },
+                    {
+                        label: "Diastolic",
+                        data: diastolicData,
+                        borderColor: "#3b82f6",
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                parsing: false
+            }
+        });
+    }
+
+    if (tempCanvas) {
+        new Chart(tempCanvas, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Temperature",
+                        data: temperatureData,
+                        borderColor: "#f59e0b",
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                parsing: false
+            }
+        });
+    }
+
+})();
+</script>
+
+{% endblock %}

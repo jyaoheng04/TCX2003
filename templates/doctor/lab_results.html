@@ -1,0 +1,282 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<div class="doctor-page">
+
+    <div class="doctor-title">Lab Results</div>
+
+    <div class="form-card" style="margin-bottom:16px;">
+
+        <form method="GET">
+
+            <select name="status" onchange="this.form.submit()">
+
+                <option value="all"
+                    {% if request.args.get('status', 'all') == 'all' %}
+                        selected
+                    {% endif %}>
+                    All Results
+                </option>
+
+                <option value="pending"
+                    {% if request.args.get('status') == 'pending' %}
+                        selected
+                    {% endif %}>
+                    Pending
+                </option>
+
+                <option value="ready"
+                    {% if request.args.get('status') == 'ready' %}
+                        selected
+                    {% endif %}>
+                    Ready
+                </option>
+
+            </select>
+
+        </form>
+
+    </div>
+
+    <div class="doctor-table-card">
+
+        <table class="doctor-table">
+
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Test Type</th>
+                    <th>Status</th>
+                    <th>Result Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for lab in labs %}
+                <tr>
+
+                    <td class="patient-name">
+                        {{ lab.patient_name }}
+                    </td>
+
+                    <td>
+                        {% if lab.test_type == "blood_test" %}
+                            Blood Test
+                        {% elif lab.test_type == "urine_test" %}
+                            Urine Test
+                        {% else %}
+                            {{ lab.test_type }}
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if lab.result_status is none %}
+                            <span style="color:#dc2626;font-weight:600;">
+                                Pending
+                            </span>
+                        {% else %}
+                            <span style="color:#16a34a;font-weight:600;">
+                                Ready
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if lab.result_date %}
+                            {{ lab.result_date.strftime("%Y-%m-%d %H:%M") }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+
+                        {% if lab.result_status is not none %}
+                        <button
+                            type="button"
+                            class="btn-edit"
+                            onclick='showLabResult(
+                                {{ lab.result_details|tojson }},
+                                {{ lab.test_type|tojson }},
+                                {{ lab.patient_name|tojson }}
+                            )'>
+                            View
+                        </button>
+                        {% else %}
+                        <span class="btn-delete">Pending</span>
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+                {% endfor %}
+
+                {% if not labs %}
+                <tr>
+                    <td colspan="5"
+                        style="text-align:center;padding:20px;color:#64748b;">
+                        No lab results available
+                    </td>
+                </tr>
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<div id="labModal" class="modal-overlay" style="display:none;">
+
+    <div class="modal-card" style="position:relative;">
+
+        <button
+            type="button"
+            onclick="closeLabModal()"
+            style="position:absolute;top:8px;right:8px;
+                   width:24px;height:24px;
+                   border:none;background:red;color:white;
+                   font-size:14px;line-height:1;
+                   cursor:pointer;border-radius:4px;">
+            ×
+        </button>
+
+        <h3 id="modalTitle" style="margin-right:32px;">Lab Result</h3>
+
+        <hr>
+
+        <div id="modalBody"></div>
+
+    </div>
+
+</div>
+<script>
+
+function closeLabModal() {
+    document.getElementById("labModal").style.display = "none";
+}
+
+function showLabResult(resultData, testType, patientName) {
+
+    let data = resultData;
+
+    if (typeof data === "string") {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.error(e);
+            data = {};
+        }
+    }
+
+    document.getElementById("labModal").style.display = "flex";
+
+    document.getElementById("modalTitle").innerText =
+        patientName + " - " +
+        (testType === "blood_test" ? "Blood Test" : "Urine Test");
+
+    let html = "";
+
+    if (testType === "blood_test") {
+
+        html += `
+            <div class="result-section">
+
+                <h4>Full Blood Count</h4>
+
+                <table class="result-table">
+                    <tr><td>WBC</td><td>${data.full_blood_count?.wbc || "-"}</td></tr>
+                    <tr><td>Hemoglobin</td><td>${data.full_blood_count?.hemoglobin || "-"}</td></tr>
+                    <tr><td>Platelets</td><td>${data.full_blood_count?.platelets || "-"}</td></tr>
+                </table>
+
+            </div>
+
+            <div class="result-section">
+
+                <h4>Lipid Panel</h4>
+
+                <table class="result-table">
+                    <tr><td>Total Cholesterol</td><td>${data.lipid_panel?.total_cholesterol || "-"}</td></tr>
+                    <tr><td>Triglycerides</td><td>${data.lipid_panel?.triglycerides || "-"}</td></tr>
+                </table>
+
+            </div>
+
+            <div class="result-section">
+
+                <h4>Metabolic Panel</h4>
+
+                <table class="result-table">
+                    <tr><td>Fasting Glucose</td><td>${data.metabolic_panel?.fasting_glucose || "-"}</td></tr>
+                    <tr><td>Creatinine</td><td>${data.metabolic_panel?.creatinine || "-"}</td></tr>
+                </table>
+
+            </div>
+        `;
+
+    } else {
+
+        html += `
+            <div class="result-section">
+
+                <h4>Physical Examination</h4>
+
+                <table class="result-table">
+                    <tr><td>Color</td><td>${data.physical?.color || "-"}</td></tr>
+                    <tr><td>Clarity</td><td>${data.physical?.clarity || "-"}</td></tr>
+                    <tr><td>Specific Gravity</td><td>${data.physical?.specific_gravity || "-"}</td></tr>
+                </table>
+
+            </div>
+
+            <div class="result-section">
+
+                <h4>Chemical Examination</h4>
+
+                <table class="result-table">
+                    <tr><td>pH</td><td>${data.chemical?.ph || "-"}</td></tr>
+                    <tr><td>Protein</td><td>${data.chemical?.protein || "-"}</td></tr>
+                    <tr><td>Glucose</td><td>${data.chemical?.glucose || "-"}</td></tr>
+                    <tr><td>Ketones</td><td>${data.chemical?.ketones || "-"}</td></tr>
+                    <tr><td>Blood</td><td>${data.chemical?.blood || "-"}</td></tr>
+                    <tr><td>Nitrites</td><td>${data.chemical?.nitrites || "-"}</td></tr>
+                    <tr><td>Leukocyte Esterase</td><td>${data.chemical?.leukocyte_esterase || "-"}</td></tr>
+                    <tr><td>Bilirubin</td><td>${data.chemical?.bilirubin || "-"}</td></tr>
+                </table>
+
+            </div>
+
+            <div class="result-section">
+
+                <h4>Microscopic Examination</h4>
+
+                <table class="result-table">
+                    <tr><td>RBC</td><td>${data.microscopic?.rbc || "-"}</td></tr>
+                    <tr><td>WBC</td><td>${data.microscopic?.wbc || "-"}</td></tr>
+                    <tr><td>Bacteria</td><td>${data.microscopic?.bacteria || "-"}</td></tr>
+                </table>
+
+            </div>
+        `;
+    }
+
+    document.getElementById("modalBody").innerHTML = html;
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById("labModal");
+
+    if (event.target === modal) {
+        closeLabModal();
+    }
+};
+
+</script>
+
+{% endblock %}

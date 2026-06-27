@@ -1,60 +1,238 @@
-{% extends 'layout/base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
-{% endblock %}
-
+{% extends "layout/base.html" %}
 {% block content %}
-
 <div class="doctor-page">
 
-    <h2 class="title">New Consultation</h2>
+    <div class="title">Medical Consultation</div>
+    <div class="flex">
+        <div class="patient-card">
+            <a href="/doctor/patients/{{ q.patient_id }}"><div class="title">{{ q.full_name }}</div></a>
+            <p>Age: <span id="age"></span></p>
+            <p>Date of Birth: {{ q.date_of_birth }}</p>
+            <br>
+            <h4>Blood Pressure Chart</h4>
+            <canvas id="bpChart"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <br>
+            <h4>Temperature Chart</h4>
+            <canvas id="tempChart"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        </div>
 
-    <div class="form-card">
+        <div class="form-card">
+            <form method="POST" action="/doctor/consultation/save">
+                <input type="hidden" name="queue_id" value="{{ q.queue_id }}">
+                <input type="hidden" name="patient_id" value="{{ q.patient_id }}">
+                <div class="grid">
+                    <div class="field">
+                        <label>Temperature (°C)</label>
+                        <input name="temperature" id="temperature" type="number" step="0.1" placeholder="e.g. 36.5" required oninput="checkTemperature()">
+                        <label id="temp_warn" style="color:red; display:none;"></label>
+                    </div>
+                    <div class="field">
+                        <label>Blood Pressure</label>
+                        <div class="bp-grid">
+                            <input id="bp_sys" name="bp_sys" type="number" placeholder="Systolic" oninput="checkBP()">
+                            <span class="bp-divider">/</span>
+                            <input id="bp_dia" name="bp_dia" type="number" placeholder="Diastolic" oninput="checkBP()">
+                        </div>
 
-        <form class="consult-form">
+                        <label id="bp_warn" style="color:red; display:none;"></label>
 
-            <div class="grid">
+                        <input type="hidden" id="blood_pressure" name="blood_pressure">
 
-                <div class="field">
-                    <label>Patient</label>
-                    <select>
-                        <option>Select Patient</option>
-                        <option>John Tan</option>
-                        <option>Mary Lee</option>
+                        <label id="bp_warn"
+                            style="color:red; display:none; font-size:12px;">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="field">
+                        <label>Symptoms</label>
+                        <input name="symptoms"required>
+                    </div>
+                    <div class="field">
+                        <label>Diagnosis</label>
+                        <input name="doctor_notes"required>
+                    </div>
+                </div>
+                <div class="grid field">
+                    <label>Test Required?</label>
+
+                    <select name="test_order" required>
+                        <option value="none" selected>No Test Required</option>
+                        <option value="blood">Blood Test</option>
+                        <option value="urine">Urine Test</option>
                     </select>
                 </div>
-
-                <div class="field">
-                    <label>Symptoms</label>
-                    <input type="text" placeholder="e.g. Fever, headache">
-                </div>
-
-                <div class="field">
-                    <label>Diagnosis</label>
-                    <input type="text" placeholder="e.g. Viral infection">
-                </div>
-
-                <div class="field">
+                <div class="grid field">
                     <label>Prescription</label>
-                    <input type="text" placeholder="e.g. Paracetamol 500mg">
+                    Leave blank if no patient has requested for no medication.
+                    <div id="rx-container">
+                        <div class="rx-row">
+                            <input type="text" name="medicine[]" placeholder="Medicine name">
+                            <input type="text" name="dosage[]" placeholder="Dosage">
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="addRxRow()" class="btn-add">
+                        + Add new item
+                    </button>
                 </div>
 
-            </div>
-
-            <div class="field full">
-                <label>Doctor Notes</label>
-                <textarea placeholder="Add detailed observations..."></textarea>
-            </div>
-
-            <div class="actions">
-                <button type="button" class="btn-primary">Save Consultation</button>
-            </div>
-
-        </form>
-
+                <div class="actions">
+                    <button class="btn-primary" type="submit">
+                        Save Vitals
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
 </div>
 
+<script>
+function addRxRow() {
+    const container = document.getElementById("rx-container");
+
+    const row = document.createElement("div");
+    row.classList.add("rx-row");
+
+    row.innerHTML = `
+        <input type="text" name="medicine[]" placeholder="Medicine name">
+        <input type="text" name="dosage[]" placeholder="Dosage">
+    `;
+
+    container.appendChild(row);
+}
+
+function checkTemperature() { 
+    let temp = parseFloat(document.getElementById("temperature").value);
+    const warning = document.getElementById("temp_warn"); 
+    if (!isNaN(temp) && temp >= 37.5 && temp < 39) { 
+        warning.textContent = "Patient has a fever."; 
+        warning.style.display = "inline";
+    } else if (!isNaN(temp) && temp >= 39) { 
+        warning.textContent = "Patient has a high fever."; 
+        warning.style.display = "inline"; 
+    } else if (!isNaN(temp) && temp >11.8 && temp < 35) 
+    { warning.textContent = "Patient may have hypothermia."; 
+    warning.style.display = "inline"; 
+    } else{ 
+        warning.style.display = "none"; 
+    } 
+}
+
+function checkBP() {
+    let sys = parseFloat(document.getElementById("bp_sys").value);
+    let dia = parseFloat(document.getElementById("bp_dia").value);
+    const warning = document.getElementById("bp_warn");
+
+    // hide if incomplete
+    if (isNaN(sys) || isNaN(dia)) {
+        warning.style.display = "none";
+        return;
+    }
+
+    let msg = "";
+    if (sys > 180 || dia > 120) {
+        msg = "Hypertensive Crisis (Seek immediate attention)";
+    }
+    else if (sys >= 140 || dia >= 90) {
+        msg = "Stage 2 Hypertension";
+    }
+    // Stage 1
+    else if ((sys >= 130 && sys <= 139) || (dia >= 80 && dia <= 89)) {
+        msg = "Stage 1 Hypertension";
+    }
+    // Elevated
+    else if (sys >= 120 && sys <= 129 && dia < 80) {
+        msg = "Elevated";
+    }
+
+    if (msg) {
+        warning.textContent = msg;
+        warning.style.display = "inline";
+    } else {
+        warning.style.display = "none";
+    }
+}
+
+(function () {
+
+    const systolicData = {{ systolic | tojson }};
+    const diastolicData = {{ diastolic | tojson }};
+    const temperatureData = {{ temperatures | tojson }};
+
+    const bpCanvas = document.getElementById("bpChart");
+    const tempCanvas = document.getElementById("tempChart");
+
+    if (bpCanvas) {
+        new Chart(bpCanvas, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Systolic",
+                        data: systolicData,
+                        borderColor: "#ef4444",
+                        tension: 0.3
+                    },
+                    {
+                        label: "Diastolic",
+                        data: diastolicData,
+                        borderColor: "#3b82f6",
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                parsing: false
+            }
+        });
+    }
+
+    if (tempCanvas) {
+        new Chart(tempCanvas, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Temperature",
+                        data: temperatureData,
+                        borderColor: "#f59e0b",
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                parsing: false
+            }
+        });
+    }
+
+})();
+
+function calculateAge(dobString) {
+    const dob = new Date(dobString);
+    const today = new Date();
+
+    let age = today.getFullYear() - dob.getFullYear();
+
+    const monthDiff = today.getMonth() - dob.getMonth();
+    const dayDiff = today.getDate() - dob.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        age--;
+    }
+
+    return age;
+}
+
+const dob = "{{ q.date_of_birth }}";
+const age = calculateAge(dob);
+
+console.log("Age:", age);
+
+document.getElementById("age").innerText = age;
+</script>
 {% endblock %}

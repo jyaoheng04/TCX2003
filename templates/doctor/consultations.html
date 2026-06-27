@@ -1,0 +1,73 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<div class="doctor-page">
+
+    <div class="doctor-title">Consultation History</div>
+
+    <div class="dashboard-grid" style="margin-bottom: 18px;">
+        
+        <div class="dashboard-card">
+            <h3>Total Revenue</h3>
+            <p>${{ total_revenue or 0 }}</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Total Consultations</h3>
+            <p>{{ total_consultations or 0 }}</p>
+        </div>
+        
+        <div class="dashboard-card">
+            <h3>Revenue per Consultation</h3>
+            <p>${{"%.2f"|format(total_revenue / total_consultations) or 0 }}</p>
+        </div>
+    </div>
+
+    <div class="doctor-table-card">
+
+        <table class="doctor-table">
+
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Consultation Date</th>
+                    <th>Doctor Notes</th>
+                    <th>Bill ($)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for c in consultations %}
+                <tr>
+                    <td class="patient-name">{{ c.patient_name }}</td>
+                    <td>{{ c.consultation_time }}</td>
+                    <td>{{ c.doctor_notes }}</td>
+                    <td>${{c.bill_data.total_price }}</td>
+                    <td class="actions">
+                        <a href="/doctor/consult_detail/{{ c.consultation_id }}" class="btn-edit">
+                            View Bill
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+
+                {% if not consultations %}
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:20px; color:#64748b;">
+                        No billing records found
+                    </td>
+                </tr>
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

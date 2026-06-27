@@ -1,0 +1,64 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="doctor-page">
+
+    <div class="doctor-title">
+        Bill Breakdown for <a href="/doctor/patients/{{ bill.patient_id }}">{{ bill.patient_name }}</a>
+    </div>
+
+    <div class="form-card">
+
+        <h3>Consultation Details</h3>
+
+        <p><b>Symptoms:</b> {{ bill.symptoms }}</p>
+        <p><b>Diagnosis:</b> {{ bill.diagnosis }}</p>
+        <p><b>Notes:</b> {{ bill.doctor_notes }}</p>
+        <p><b>Date:</b> {{ bill.consultation_time }}</p>
+
+        <hr>
+
+        <h3>Billing Breakdown</h3>
+
+        <p>Consultation Fee: ${{ bill_data.consultation_fee }}</p>
+
+        <h4>Medications</h4>
+
+        {% if bill_data.medications %}
+            {% for m in bill_data.medications %}
+                <div class="rx-item">
+                    {{ m.name }} — ${{ "%.2f"|format(m.price) }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Patient requested no medication.</p>
+        {% endif %}
+
+        {% if bill_data.get("Blood Test") or bill_data.get("Urine Test") %}
+
+            <h4>Test(s)</h4>
+
+            {% if bill_data.get("Blood Test") %}
+                <div class="rx-item">
+                    Blood Test — ${{ "%.2f"|format(bill_data["Blood Test"]) }}
+                </div>
+            {% endif %}
+
+            {% if bill_data.get("Urine Test") %}
+                <div class="rx-item">
+                    Urine Test — ${{ "%.2f"|format(bill_data["Urine Test"]) }}
+                </div>
+            {% endif %}
+
+        {% endif %}
+
+        <hr>
+
+        <h3>Total: ${{ bill_data.total_price }}</h3>
+
+    </div>
+
+</div>
+
+{% endblock %}

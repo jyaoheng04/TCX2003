@@ -1,0 +1,48 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="doctor-page">
+
+    <div class="doctor-title">
+        Bill Breakdown for <a href="/doctor/patients/{{ bill.patient_id }}">{{ bill.patient_name }}</a>
+    </div>
+
+    <div class="form-card">
+
+        <h3>Consultation Details</h3>
+
+        <p><b>Symptoms:</b> {{ bill.symptoms }}</p>
+        <p><b>Diagnosis:</b> {{ bill.diagnosis }}</p>
+        <p><b>Notes:</b> {{ bill.doctor_notes }}</p>
+        <p><b>Date:</b> {{ bill.consultation_time }}</p>
+
+        <hr>
+
+        <h3>Billing Breakdown</h3>
+
+        <p>Consultation Fee: ${{ bill_data.consultation_fee }}</p>
+
+        <h4>Medications</h4>
+
+        {% if bill_data.medications %}
+            <ul>
+                {% for m in bill_data.medications %}
+                    <div class="rx-item">
+                        {{ m.name }} — ${{ m.price }}
+                    </div>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Patient requested for no medication.</p>
+        {% endif %}
+
+        <hr>
+
+        <h3>Total: ${{ bill_data.total_price }}</h3>
+
+    </div>
+
+</div>
+
+{% endblock %}

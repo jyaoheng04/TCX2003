@@ -1,26 +1,73 @@
-{% extends 'layout/base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
-{% endblock %}
+{% extends "layout/base.html" %}
 
 {% block content %}
 
-<div class="dashboard-page doctor-theme">
+<div class="doctor-page">
+    <div class="doctor-title">My Queue</div>
+    <div class="doctor-table-card">
+        <table class="doctor-table">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if next_patient %}
+                <tr>
+                    <td class="patient-name">{{ next_patient.full_name }}</td>
+                    <td>{{ next_patient.priority_status }}</td>
+                    <td>{{ next_patient.queue_status }}</td>
+                    <td>
+                        {% if next_patient.queue_status == 'waiting' %}
+                        <a class="btn-edit" href="/doctor/consultation/{{ next_patient.queue_id }}">
+                            Start
+                        </a>
+                        {% else %}
+                        <span class="btn-delete">Done</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">No patients in queue</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="grid"><br></div>
+    <div class="doctor-table-card">
+        <table class="doctor-table">
+            <tbody>
+            {% for q in queue %}
+                <tr class="{% if q.queue_status|lower in ('pending', 'completed') %}grey-row{% endif %}">
 
-    <h2 class="dashboard-title">Doctor Dashboard</h2>
+                    <td class="patient-name">{{ q.full_name }}</td>
+                    <td>{{ q.priority_status }}</td>
+                    <td>{{ q.queue_status }}</td>
 
-    <div class="dashboard-grid">
+                    <td>
+                        {% if q.queue_status == 'waiting' %}
+                        <a class="btn-edit" href="/doctor/consultation/{{ q.queue_id }}">
+                            Start
+                        </a>
+                        {% elif q.queue_status in 'pending' %}
+                        <a class="btn-edit">
+                            Waiting on Nurse
+                        </a>
+                        {% else %}
+                        <span class="btn-delete">Done</span>
+                        {% endif %}
+                    </td>
 
-        <a href="/doctor/consultations" class="dashboard-card">
-            <h3>📄 Consultations</h3>
-            <p>View all patient records</p>
-        </a>
+                </tr>
+            {% endfor %}
+            </tbody>
 
-        <a href="/doctor/create" class="dashboard-card">
-            <h3>➕ New Consultation</h3>
-            <p>Create patient medical record</p>
-        </a>
+        </table>
 
     </div>
 
