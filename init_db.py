@@ -56,6 +56,7 @@ CREATE TABLE patient (
     full_name VARCHAR(100),
     nric VARCHAR(20),
     phone VARCHAR(20),
+    email VARCHAR(100),
     date_of_birth DATE,
     FOREIGN KEY (user_id) REFERENCES user_account(user_id)
 )
@@ -76,6 +77,18 @@ CREATE TABLE medical_staff (
 )
 """)
 
+# ======================
+# WEB ADMIN
+# ======================
+cursor.execute("""
+CREATE TABLE web_admin (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    full_name VARCHAR(100),
+    admin_role ENUM('account_manager','queue_manager','system_admin'),
+    FOREIGN KEY (user_id) REFERENCES user_account(user_id)
+)
+""")
 
 # ======================
 # APPOINTMENT
@@ -123,7 +136,7 @@ CREATE TABLE walk_in_queue (
     queue_status ENUM('waiting','in_consultation','completed','cancelled'),
     FOREIGN KEY (patient_id) REFERENCES patient(patient_id),
     FOREIGN KEY (assigned_staff_id) REFERENCES medical_staff(staff_id),
-    FOREIGN KEY (managed_by_admin_id) REFERENCES user_account(user_id)
+    FOREIGN KEY (managed_by_admin_id) REFERENCES web_admin(admin_id)
 )
 """)
 
@@ -172,6 +185,101 @@ CREATE TABLE lab_result (
     FOREIGN KEY (consultation_id) REFERENCES consultation(consultation_id)
 )
 """)
+
+
+departments = {
+    "General": ["Family Medicine", "Chronic Care"],
+    "Emergency": ["Trauma", "Acute Care"],
+    "Pediatrics": ["Child Health", "Neonatology"],
+    "Surgery": ["Orthopedic", "General Surgery"]
+}
+
+password = generate_password_hash("Cyberark1")
+
+doctor_no = 1
+nurse_no = 1
+
+for department, specialisations in departments.items():
+
+    for specialisation in specialisations:
+
+        # --------------------------
+        # Doctor
+        # --------------------------
+
+        doctor_email = f"doctor{doctor_no}@clinic.com"
+
+        cursor.execute("""
+            SELECT user_id
+            FROM user_account
+            WHERE email=%s
+        """, (doctor_email,))
+
+        if cursor.fetchone() is None:
+
+            cursor.execute("""
+                INSERT INTO user_account
+                (email,password,user_type,status)
+                VALUES (%s,%s,'doctor','active')
+            """, (
+                doctor_email,
+                password
+            ))
+
+            doctor_user_id = cursor.lastrowid
+
+            cursor.execute("""
+                INSERT INTO medical_staff
+                (user_id,full_name,role,department,specialisation)
+                VALUES (%s,%s,%s,%s,%s)
+            """, (
+                doctor_user_id,
+                f"Doctor {doctor_no}",
+                "doctor",
+                department,
+                specialisation
+            ))
+
+        doctor_no += 1
+
+        # --------------------------
+        # Nurse
+        # --------------------------
+
+        nurse_email = f"nurse{nurse_no}@clinic.com"
+
+        cursor.execute("""
+            SELECT user_id
+            FROM user_account
+            WHERE email=%s
+        """, (nurse_email,))
+
+        if cursor.fetchone() is None:
+
+            cursor.execute("""
+                INSERT INTO user_account
+                (email,password,user_type,status)
+                VALUES (%s,%s,'nurse','active')
+            """, (
+                nurse_email,
+                password
+            ))
+
+            nurse_user_id = cursor.lastrowid
+
+            cursor.execute("""
+                INSERT INTO medical_staff
+                (user_id,full_name,role,department,specialisation)
+                VALUES (%s,%s,%s,%s,%s)
+            """, (
+                nurse_user_id,
+                f"Nurse {nurse_no}",
+                "nurse",
+                department,
+                specialisation
+            ))
+
+        nurse_no += 1
 
 
 conn.commit()

@@ -582,7 +582,7 @@ def profile():
             p.nric,
             p.phone,
             p.date_of_birth,
-            u.username
+            u.email
         FROM patient p
         JOIN user_account u ON p.user_id = u.user_id
         WHERE p.patient_id = %s
