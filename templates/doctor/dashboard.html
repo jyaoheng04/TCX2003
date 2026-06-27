@@ -9,7 +9,7 @@
             <thead>
                 <tr>
                     <th>Patient</th>
-                    <th>Priority</th>
+                    <th>Queue Number</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -18,7 +18,7 @@
                 {% if next_patient %}
                 <tr>
                     <td class="patient-name">{{ next_patient.full_name }}</td>
-                    <td>{{ next_patient.priority_status }}</td>
+                    <td>{{ next_patient.queue_number }}</td>
                     <td>{{ next_patient.queue_status }}</td>
                     <td>
                         {% if next_patient.queue_status == 'waiting' %}

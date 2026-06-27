@@ -125,9 +125,9 @@ def register():
 
         # insert patient
         cursor.execute("""
-            INSERT INTO patient (user_id, full_name, nric, phone, date_of_birth)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (user_id, full_name, nric, phone, dob))
+            INSERT INTO patient (user_id, full_name, nric, phone, email, date_of_birth)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (user_id, full_name, nric, phone, email, dob))
 
         conn.commit()
 

@@ -30,19 +30,28 @@ def dashboard():
     cursor = db.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT w.queue_id, p.full_name, w.priority_status, w.queue_status, w.check_in_time
-        FROM walk_in_queue w
-        JOIN patient p ON p.patient_id = w.patient_id
-        ORDER BY
-        CASE 
-            WHEN w.queue_status = 'waiting' AND w.priority_status = 'priority' THEN 0
-            WHEN w.queue_status = 'waiting' THEN 1
-            WHEN w.queue_status = 'pending' THEN 2
-            WHEN w.queue_status = 'in_consultation' THEN 3
-            ELSE 4
-        END,
-        w.check_in_time ASC
-    """)
+            SELECT
+                q.queue_id,
+                q.queue_number,
+                q.queue_status,
+                p.full_name,
+                c.consultation_time
+            FROM queue q
+            JOIN patient p
+                ON p.patient_id = q.patient_id
+            JOIN consultation c
+                ON c.queue_id = q.queue_id
+            WHERE c.service_type = 'consultation'
+            ORDER BY
+                CASE
+                    WHEN q.queue_status = 'waiting' THEN 0
+                    WHEN q.queue_status = 'in_consultation' THEN 1
+                    WHEN q.queue_status = 'completed' THEN 2
+                    WHEN q.queue_status = 'cancelled' THEN 3
+                    ELSE 4
+                END,
+                c.consultation_time
+        """)
 
     queue = cursor.fetchall()
 
@@ -64,7 +73,7 @@ def consultation(queue_id):
     # patient info
     cursor.execute("""
         SELECT w.queue_id, p.patient_id, p.full_name, p.date_of_birth
-        FROM walk_in_queue w
+        FROM queue w
         JOIN patient p ON p.patient_id = w.patient_id
         WHERE w.queue_id = %s
     """, (queue_id,))
@@ -236,14 +245,20 @@ def save_consultation():
         ))
 
         cursor.execute("""
-            UPDATE walk_in_queue
+            UPDATE queue
             SET queue_status = 'pending'
             WHERE queue_id = %s
         """, (queue_id,))
 
     else:
         cursor.execute("""
-            UPDATE walk_in_queue
+            UPDATE queue
+            SET queue_status = 'completed'
+            WHERE queue_id = %s
+        """, (queue_id,))
+
+        cursor.execute("""
+            UPDATE appointment
             SET queue_status = 'completed'
             WHERE queue_id = %s
         """, (queue_id,))
