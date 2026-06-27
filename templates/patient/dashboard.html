@@ -6,24 +6,133 @@
 
 {% block content %}
 
-<h2 class="dashboard-title">Patient Dashboard</h2>
+<div class="dashboard-header">
+    <h2 class="dashboard-title">Patient Dashboard</h2>
+</div>
 
 <div class="dashboard-grid">
 
-    <div class="dashboard-card">
-        <h3>📅 My Appointments</h3>
-        <p>Upcoming consultations</p>
+    <!-- ===================== -->
+    <!-- TODAY APPOINTMENTS -->
+    <!-- ===================== -->
+     <div class="dashboard-section">
+
+        <h3>Today's Appointments</h3>
+
+        {% if today_appointments %}
+
+            {% for a in today_appointments %}
+
+            <div class="appointment-card">
+
+                <div class="appointment-top">
+
+                    <div class="queue-box">
+                        <div class="queue-label">Queue</div>
+                        <div class="queue-number"> 
+                            <!-- for cindy: reference to queue number here -->
+                            {{ a.appointment_id }} 
+                        </div>
+                    </div>
+
+                    <div class="status-box">
+                        <span class="status status-waiting">
+                            {{ a.queue_status.replace("_", " ").title() }}
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="appointment-body">
+
+                    <p class="meta-line">
+                        <strong>Date:</strong>
+                        {{ a.appointment_date.strftime('%Y-%m-%d') }}
+                        &nbsp; | &nbsp;
+                        <strong>Time:</strong>
+                        {{ a.appointment_date.strftime('%H:%M') }}
+                    </p>
+
+                    <p><strong>Consultation Room:</strong> 
+                        {{ a.consultation_room }}
+                    </p>
+                    <p><strong>Type:</strong> 
+                        {{ appointment_labels.get(a.appointment_type, a.appointment_type) }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+            <p>No appointments today.</p>
+        {% endif %}
+
     </div>
 
-    <div class="dashboard-card">
-        <h3>📁 Medical Records</h3>
-        <p>View past history</p>
+
+    <!-- ===================== -->
+    <!-- UPCOMING APPOINTMENTS -->
+    <!-- ===================== -->
+     <div class="dashboard-section">
+
+        <h3>Upcoming Appointments</h3>
+
+        {% if upcoming_appointments %}
+
+            {% for a in upcoming_appointments %}
+
+            <div class="appointment-card">
+
+                <div class="appointment-top">
+
+                    <div class="queue-box">
+                        <div class="queue-label">Queue</div>
+                        <div class="queue-number upcoming">
+                            <!-- for cindy: reference to queue number here -->
+                            {{ a.appointment_id }}
+                        </div>
+                    </div>
+
+                    <div class="status-box">
+                        <span class="status status-booked">
+                            {{ a.queue_status.replace("_", " ").title() }}
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="appointment-body">
+
+                    <p class="meta-line">
+                        <strong>Date:</strong>
+                        {{ a.appointment_date.strftime('%Y-%m-%d') }}
+                        &nbsp; | &nbsp;
+                        <strong>Time:</strong>
+                        {{ a.appointment_date.strftime('%H:%M') }}
+                    </p>
+
+                    <p><strong>Consultation Room:</strong> 
+                        {{ a.consultation_room }}
+                    </p>
+                    <p><strong>Type:</strong> 
+                        {{ appointment_labels.get(a.appointment_type, a.appointment_type) }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+            <p>No upcoming appointments.</p>
+        {% endif %}
+
     </div>
 
-    <div class="dashboard-card">
-        <h3>💊 Prescriptions</h3>
-        <p>Current medication list</p>
-    </div>
 
 </div>
 

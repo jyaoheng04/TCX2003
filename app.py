@@ -1,10 +1,15 @@
 from flask import Blueprint, Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request, flash
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 import mysql.connector
 
 from routes.auth import auth
 from routes.admin import admin
+from routes.patient import patient_bp
+
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -92,6 +97,7 @@ def patient_profile():
 def logout():
     return redirect('/')
 
+app.register_blueprint(patient_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)

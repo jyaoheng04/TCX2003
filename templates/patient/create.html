@@ -10,53 +10,311 @@
 
 <div class="patient-form-card">
 
-    <form class="patient-form">
+<form class="patient-form" method="POST">
 
-        <div class="patient-field">
-            <label>Doctor</label>
-            <select>
-                <option>Select Doctor</option>
-                <option>Dr Tan</option>
-                <option>Dr Lim</option>
-            </select>
-        </div>
+    <!-- DOCTOR -->
+    <div class="patient-field" id="doctorField">
 
-        <div class="patient-field">
-            <label>Appointment Type</label>
-            <select>
-                <option>Consultation</option>
-                <option>Follow-up</option>
-                <option>Vaccination</option>
-            </select>
-        </div>
+        <label>Doctor</label>
 
-        <div class="patient-grid-2">
+        <select name="doctor_id"
+                id="doctorSelect"
+                class="{% if errors.get('doctor_id') %}input-error{% endif %}">
 
-            <div class="patient-field">
-                <label>Date</label>
-                <input type="date">
-            </div>
+            <option value="">-- Select Doctor --</option>
 
-            <div class="patient-field">
-                <label>Time</label>
-                <input type="time">
-            </div>
+            {% for doctor in doctors %}
+            <option value="{{ doctor.staff_id }}"
+                {% if form_data.get('doctor_id') == doctor.staff_id|string %}selected{% endif %}>
+                {{ doctor.full_name }}
+            </option>
+            {% endfor %}
 
-        </div>
+        </select>
 
-        <div class="patient-field">
-            <label>Reason for Visit</label>
-            <input type="text" placeholder="e.g. fever, cough, headache">
-        </div>
+        {% if errors.get('doctor_id') %}
+        <div class="field-error">{{ errors['doctor_id'] }}</div>
+        {% endif %}
 
-        <div class="patient-actions">
-            <button type="button" class="patient-btn patient-btn--primary">
-                Confirm Booking
-            </button>
-        </div>
+    </div>
 
-    </form>
+    <!-- APPOINTMENT TYPE -->
+    <div class="patient-field">
+        <label>Appointment Type</label>
+        <select name="appointment_type"
+                id="appointmentType"
+                class="{% if errors.get('appointment_type') %}input-error{% endif %}"
+                required>
+
+            {% set selected_type = form_data.get('appointment_type') %}
+
+            <option value="consultation" {% if selected_type == 'consultation' %}selected{% endif %}>
+                Consultation
+            </option>
+            <option value="blood_test" {% if selected_type == 'blood_test' %}selected{% endif %}>
+                Blood Test
+            </option>
+            <option value="urine_test" {% if selected_type == 'urine_test' %}selected{% endif %}>
+                Urine Test
+            </option>
+        </select>
+
+        {% if errors.get('appointment_type') %}
+        <div class="field-error">{{ errors['appointment_type'] }}</div>
+        {% endif %}
+    </div>
+
+    <!-- DATE -->
+    <div class="patient-field">
+        <label>Select Date</label>
+        <input type="date"
+            id="datePicker"
+            name="date"
+            value="{{ form_data.get('date', '') }}"
+            min="{{ (datetime.utcnow().date()) }}"
+            class="{% if errors.get('date') %}input-error{% endif %}"
+            required>
+
+        {% if errors.get('date') %}
+        <div class="field-error">{{ errors['date'] }}</div>
+        {% endif %}
+    </div>
+
+    <!-- TIME -->
+    <div class="patient-field">
+        <label>Select Time</label>
+
+        <div id="timeSlots" class="time-slot-grid"></div>
+
+        <input type="hidden"
+               name="time"
+               id="selectedTime"
+               value="{{ form_data.get('time', '') }}"
+               class="{% if errors.get('time') %}input-error{% endif %}">
+
+        {% if errors.get('time') %}
+        <div class="field-error">{{ errors['time'] }}</div>
+        {% endif %}
+    </div>
+
+    <!-- REASON -->
+    <div class="patient-field">
+        <label>Reason for Visit</label>
+        <input type="text"
+               name="reason"
+               value="{{ form_data.get('reason', '') }}"
+               class="{% if errors.get('reason') %}input-error{% endif %}"
+               required>
+
+        {% if errors.get('reason') %}
+        <div class="field-error">{{ errors['reason'] }}</div>
+        {% endif %}
+    </div>
+
+    <div class="patient-actions">
+        <button type="submit" class="patient-btn patient-btn--primary">
+            Confirm Booking
+        </button>
+    </div>
+
+</form>
 
 </div>
+
+<!-- ===================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================== -->
+<script>
+const datePicker = document.getElementById("datePicker");
+const timeSlotsDiv = document.getElementById("timeSlots");
+const selectedTime = document.getElementById("selectedTime");
+const appointmentType = document.getElementById("appointmentType");
+
+const doctorField = document.getElementById("doctorField");
+const doctorSelect = document.getElementById("doctorSelect");
+
+async function getBooked(date) {
+
+    const doctorId = doctorSelect.value;
+    const type = appointmentType.value;
+
+    let url = `/patient/available-times?date=${date}&appointment_type=${type}`;
+
+    // consultation needs doctor-specific checking
+    if (type === "consultation" && doctorId) {
+        url += `&doctor_id=${doctorId}`;
+    }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    return data.booked || [];
+}
+
+function generateSlots(type) {
+
+    const slots = [];
+    const startHour = 8;
+    const endHour = 18;
+
+    if (type === "consultation") {
+
+        const duration = 50;
+
+        for (let hour = startHour; hour <= endHour; hour++) {
+
+            const startH = String(hour).padStart(2, "0");
+            const startM = "00";
+
+            const startMinutes = hour * 60;
+            const endMinutes = startMinutes + duration;
+
+            const endH = String(Math.floor(endMinutes / 60)).padStart(2, "0");
+            const endM = String(endMinutes % 60).padStart(2, "0");
+
+            slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+        }
+
+    } else {
+
+        const duration = 30;
+
+        let start = startHour * 60;
+        const end = endHour * 60;
+
+        while (start + duration <= end) {
+
+            const startH = String(Math.floor(start / 60)).padStart(2, "0");
+            const startM = String(start % 60).padStart(2, "0");
+
+            const endTime = start + duration;
+            const endH = String(Math.floor(endTime / 60)).padStart(2, "0");
+            const endM = String(endTime % 60).padStart(2, "0");
+
+            slots.push(`${startH}:${startM} - ${endH}:${endM}`);
+
+            start += duration;
+        }
+    }
+
+    return slots;
+}
+
+async function renderSlots() {
+
+    const date = datePicker.value;
+    const type = appointmentType.value;
+
+    if (!date || !type) return;
+
+    if (type === "consultation" && !doctorSelect.value) {
+        timeSlotsDiv.innerHTML = "";
+        return;
+    }
+
+    const booked = await getBooked(date);
+    const slots = generateSlots(type);
+
+    timeSlotsDiv.innerHTML = "";
+
+    slots.forEach(slot => {
+
+        const startTime = slot.split(" - ")[0];
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.innerText = slot;
+        btn.classList.add("time-slot-btn");
+
+        if (booked.includes(startTime)) {
+            btn.disabled = true;
+            btn.classList.add("disabled-slot");
+        }
+
+        btn.onclick = () => {
+
+            document.querySelectorAll(".time-slot-btn")
+                .forEach(b => b.classList.remove("selected"));
+
+            btn.classList.add("selected");
+            selectedTime.value = startTime;
+        };
+
+        timeSlotsDiv.appendChild(btn);
+    });
+}
+
+function toggleDoctorField() {
+
+    const type = appointmentType.value;
+
+    if (type === "consultation") {
+
+        doctorField.style.display = "block";
+        doctorSelect.required = true;
+
+    }
+
+    else {
+
+        doctorField.style.display = "none";
+        doctorSelect.required = false;
+        doctorSelect.value = "";
+    }
+}
+
+datePicker.addEventListener("change", renderSlots);
+
+appointmentType.addEventListener("change", () => {
+    toggleDoctorField();
+    renderSlots();
+});
+
+doctorSelect.addEventListener("change", renderSlots);
+
+toggleDoctorField();
+
+</script>
+
+<!-- ===================== -->
+<!-- STYLES -->
+<!-- ===================== -->
+<style>
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.time-slot-btn {
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+.time-slot-btn.selected {
+    background: #4da3ff;
+    color: white;
+}
+
+.time-slot-btn:disabled,
+.disabled-slot {
+    background: #ddd;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.input-error {
+    border: 1px solid #e74c3c !important;
+    background-color: #fff5f5;
+}
+
+.field-error {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 5px;
+}
+</style>
 
 {% endblock %}

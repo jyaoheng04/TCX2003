@@ -10,111 +10,97 @@
 
 <div class="patient-record-grid">
 
-    <!-- RECORD CARD -->
+{% for record in records %}
+
     <div class="patient-record-card">
 
         <div class="patient-record-header">
+
             <div>
-                <h4 class="patient-record-title">Consultation #001</h4>
-                <p class="patient-record-date">20 May 2026 • Dr Tan</p>
+                <h4 class="patient-record-title">
+                    Consultation #{{ record.consultation_id }}
+                </h4>
+                <p class="patient-record-date">
+                    {{ record.consultation_time.strftime('%d %b %Y') }}
+                    {% if record.doctor_name %}• {{ record.doctor_name }}{% endif %}
+                </p>
             </div>
 
-            <span class="patient-record-status done">
-                Completed
-            </span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                <span class="patient-record-status done">Completed</span>
+
+                {% if record.lab_test_type %}
+                    {% if record.lab_result_status in (none, "pending") %}
+                        <span class="patient-record-status" style="background:#fef9c3; color:#854d0e;">
+                            Lab Pending
+                        </span>
+                    {% elif record.lab_result_status == "normal" %}
+                        <span class="patient-record-status" style="background:#dcfce7; color:#166534;">
+                            Lab Normal
+                        </span>
+                    {% else %}
+                        <span class="patient-record-status" style="background:#fee2e2; color:#991b1b;">
+                            Lab Abnormal
+                        </span>
+                    {% endif %}
+                {% endif %}
+            </div>
+
         </div>
 
         <div class="patient-record-body">
 
             <div class="patient-record-box">
-                <span class="label">Diagnosis</span>
-                <p>Viral Fever</p>
+                <span class="label">Service Type</span>
+                <p>{{ record.service_label }}</p>
             </div>
 
+            {% if record.symptoms %}
             <div class="patient-record-box">
                 <span class="label">Symptoms</span>
-                <p>Fever, headache, fatigue</p>
+                <p>{{ record.symptoms }}</p>
             </div>
+            {% endif %}
 
             <div class="patient-record-box">
                 <span class="label">Prescription</span>
-                <p>Paracetamol 500mg</p>
+                {% if record.parsed_prescription %}
+                    {% for item in record.parsed_prescription %}
+                        <p>{{ item.medicine }} — {{ item.dosage }}</p>
+                    {% endfor %}
+                {% else %}
+                    <p>No medication prescribed</p>
+                {% endif %}
             </div>
 
+            {% if record.doctor_notes %}
             <div class="patient-record-box">
-                <span class="label">Medical Certificate</span>
-                <p>Yes – 2 Days MC</p>
+                <span class="label">Doctor Notes</span>
+                <p>{{ record.doctor_notes }}</p>
             </div>
+            {% endif %}
 
         </div>
 
         <div class="patient-record-footer">
 
             <div>
-                <p><strong>Medication Status:</strong> Completed</p>
-                <p><strong>Follow-up:</strong> Not Required</p>
+                {% if record.bill_data.total_price > 0 %}
+                    <p><strong>Total: ${{ "%.2f"|format(record.bill_data.total_price) }}</strong></p>
+                {% else %}
+                    <p><strong>Medical Bill:</strong> Pending</p>
+                {% endif %}
             </div>
 
-            <button class="patient-btn-view">
-                View Full Report
-            </button>
+            <a href="/patient/report/{{ record.consultation_id }}">
+                <button class="patient-btn-view">View Details</button>
+            </a>
 
         </div>
 
     </div>
 
-    <!-- RECORD CARD -->
-    <div class="patient-record-card">
-
-        <div class="patient-record-header">
-            <div>
-                <h4 class="patient-record-title">Consultation #002</h4>
-                <p class="patient-record-date">25 May 2026 • Dr Lim</p>
-            </div>
-
-            <span class="patient-record-status pending">
-                Follow-up
-            </span>
-        </div>
-
-        <div class="patient-record-body">
-
-            <div class="patient-record-box">
-                <span class="label">Diagnosis</span>
-                <p>Hypertension Check</p>
-            </div>
-
-            <div class="patient-record-box">
-                <span class="label">Symptoms</span>
-                <p>Headache, dizziness</p>
-            </div>
-
-            <div class="patient-record-box">
-                <span class="label">Prescription</span>
-                <p>Blood pressure medication</p>
-            </div>
-
-            <div class="patient-record-box">
-                <span class="label">Medical Certificate</span>
-                <p>No MC Issued</p>
-            </div>
-
-        </div>
-
-        <div class="patient-record-footer">
-
-            <div>
-                <p><strong>Medication Status:</strong> Ongoing</p>
-                <p><strong>Follow-up:</strong> Required in 1 week</p>
-            </div>
-
-            <button class="patient-btn-view">
-                View Full Report
-            </button>
-
-        </div>
-
-    </div>
+{% endfor %}
 
 </div>
 

@@ -17,102 +17,27 @@
 
         <div class="patient-profile-box">
             <span class="label">Full Name</span>
-            <p>John Tan</p>
+            <p>{{ patient.full_name }}</p> 
+        </div>
+
+        <div class="patient-profile-box">
+            <span class="label">NRIC</span>
+            <p>{{ patient.nric }}</p>
         </div>
 
         <div class="patient-profile-box">
             <span class="label">Email</span>
-            <p>john@email.com</p>
+            <p>{{ patient.email }}</p> 
         </div>
 
         <div class="patient-profile-box">
             <span class="label">Phone</span>
-            <p>+65 9123 4567</p>
+            <p>{{ patient.phone }}</p> 
         </div>
 
         <div class="patient-profile-box">
             <span class="label">Date of Birth</span>
-            <p>12 Jan 1995</p>
-        </div>
-
-    </div>
-
-    <!-- MEDICAL INFO -->
-    <div class="patient-profile-card">
-
-        <h3 class="patient-section-title">Medical Information</h3>
-
-        <div class="patient-profile-box">
-            <span class="label">Blood Type</span>
-            <p>O+</p>
-        </div>
-
-        <div class="patient-profile-box">
-            <span class="label">Allergies</span>
-            <p>Penicillin</p>
-        </div>
-
-        <div class="patient-profile-box">
-            <span class="label">Chronic Conditions</span>
-            <p>None</p>
-        </div>
-
-        <div class="patient-profile-box">
-            <span class="label">Current Medication</span>
-            <p>None</p>
-        </div>
-
-    </div>
-
-    <!-- EMERGENCY -->
-    <div class="patient-profile-card">
-
-        <h3 class="patient-section-title">Emergency Contact</h3>
-
-        <div class="patient-profile-box">
-            <span class="label">Name</span>
-            <p>Mary Tan (Mother)</p>
-        </div>
-
-        <div class="patient-profile-box">
-            <span class="label">Phone</span>
-            <p>+65 9876 5432</p>
-        </div>
-
-        <div class="patient-profile-box">
-            <span class="label">Relationship</span>
-            <p>Parent</p>
-        </div>
-
-    </div>
-
-    <!-- SUMMARY -->
-    <div class="patient-profile-card">
-
-        <h3 class="patient-section-title">Health Summary</h3>
-
-        <div class="patient-summary">
-
-            <div class="summary-item">
-                <h4>Upcoming Appointments</h4>
-                <p>2</p>
-            </div>
-
-            <div class="summary-item">
-                <h4>Completed Visits</h4>
-                <p>5</p>
-            </div>
-
-            <div class="summary-item">
-                <h4>Active MC</h4>
-                <p>0 Days</p>
-            </div>
-
-            <div class="summary-item">
-                <h4>Outstanding Bills</h4>
-                <p>$0.00</p>
-            </div>
-
+            <p>{{ patient.date_of_birth }}</p> 
         </div>
 
     </div>

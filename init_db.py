@@ -81,17 +81,33 @@ CREATE TABLE medical_staff (
 # APPOINTMENT
 # ======================
 cursor.execute("""
-CREATE TABLE appointment (
-    appointment_id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT,
-    doctor_id INT,
-    appointment_type ENUM('consultation','vaccination','blood_test','urine_test'),
-    appointment_date DATETIME,
-    status ENUM('booked','completed','cancelled'),
-    FOREIGN KEY (patient_id) REFERENCES patient(patient_id),
-    FOREIGN KEY (doctor_id) REFERENCES medical_staff(staff_id)
-)
-""")
+    CREATE TABLE appointment (
+        appointment_id INT AUTO_INCREMENT PRIMARY KEY,
+        patient_id INT,
+        doctor_id INT NULL,
+
+        appointment_type ENUM(
+            'consultation',
+            'blood_test',
+            'urine_test'
+        ),
+
+        reason TEXT,
+        appointment_date DATETIME,
+
+        queue_status ENUM(
+            'waiting',
+            'active',
+            'completed',
+            'cancelled'
+        ) DEFAULT 'waiting',
+
+        consultation_room VARCHAR(20),
+
+        FOREIGN KEY (patient_id) REFERENCES patient(patient_id),
+        FOREIGN KEY (doctor_id) REFERENCES medical_staff(staff_id)
+    )
+    """)
 
 # ======================
 # WALK-IN QUEUE
@@ -130,7 +146,7 @@ CREATE TABLE consultation (
     symptoms TEXT,
     doctor_notes TEXT,
     prescription_notes TEXT,
-    medical_bill DECIMAL(10,2),
+    medical_bill TEXT,
     rating INT,
     consultation_time DATETIME,
 
@@ -151,11 +167,12 @@ CREATE TABLE lab_result (
     test_type ENUM('blood_test','urine_test'),
     result_details TEXT,
     result_date DATETIME,
-    result_status ENUM('pending','ready'),
+    result_status ENUM('normal','abnormal'),
 
     FOREIGN KEY (consultation_id) REFERENCES consultation(consultation_id)
 )
 """)
+
 
 conn.commit()
 cursor.close()

@@ -1,0 +1,367 @@
+{% extends 'layout/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="patient-title">Consultation Details</h2>
+
+{% if record %}
+
+<!-- ===================== -->
+<!-- SUMMARY               -->
+<!-- ===================== -->
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">
+        Consultation #{{ record.consultation_id }}
+    </h3>
+
+    <div class="patient-profile-box">
+        <span class="label">Date</span>
+        <p>{{ record.consultation_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+    </div>
+
+    <div class="patient-profile-box">
+        <span class="label">Doctor</span>
+        <p>{{ record.doctor_name or "—" }}</p>
+    </div>
+
+    <div class="patient-profile-box">
+        <span class="label">Service Type</span>
+        <p>{{ record.service_type.replace("_", " ").title() if record.service_type else "—" }}</p>
+    </div>
+
+    {% if record.symptoms %}
+    <div class="patient-profile-box">
+        <span class="label">Symptoms</span>
+        <p>{{ record.symptoms }}</p>
+    </div>
+    {% endif %}
+
+    {% if record.doctor_notes %}
+    <div class="patient-profile-box">
+        <span class="label">Diagnosis / Notes</span>
+        <p>{{ record.doctor_notes }}</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ===================== -->
+<!-- VITALS                -->
+<!-- ===================== -->
+{% if record.temperature or record.blood_pressure %}
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">Vitals</h3>
+
+    {% if record.temperature %}
+    <div class="patient-profile-box">
+        <span class="label">Temperature</span>
+        <p>{{ record.temperature }} °C
+            {% if record.temperature | float >= 39 %}
+                <span style="color:#dc2626; font-weight:600;"> — High Fever</span>
+            {% elif record.temperature | float >= 37.5 %}
+                <span style="color:#f59e0b; font-weight:600;"> — Fever</span>
+            {% elif record.temperature | float < 35 %}
+                <span style="color:#3b82f6; font-weight:600;"> — Hypothermia Risk</span>
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+    {% if record.blood_pressure %}
+    <div class="patient-profile-box">
+        <span class="label">Blood Pressure</span>
+        <p>{{ record.blood_pressure }} mmHg</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
+<!-- ===================== -->
+<!-- VITALS CHARTS         -->
+<!-- ===================== -->
+{% if systolic or temperatures %}
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">Vitals History</h3>
+
+    {% if systolic %}
+    <h4 style="margin: 12px 0 6px;">Blood Pressure</h4>
+    <canvas id="bpChart"></canvas>
+    {% endif %}
+
+    {% if temperatures %}
+    <h4 style="margin: 20px 0 6px;">Temperature</h4>
+    <canvas id="tempChart"></canvas>
+    {% endif %}
+
+</div>
+{% endif %}
+
+<!-- ===================== -->
+<!-- PRESCRIPTION          -->
+<!-- ===================== -->
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">Prescription</h3>
+
+    {% if prescription %}
+        {% for item in prescription %}
+        <div class="patient-profile-box">
+            <span class="label">{{ item.medicine }}</span>
+            <p>{{ item.dosage }}</p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No medication prescribed.</p>
+    {% endif %}
+
+</div>
+
+<!-- ===================== -->
+<!-- BILL BREAKDOWN        -->
+<!-- ===================== -->
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">Bill Breakdown</h3>
+
+    <div class="patient-profile-box">
+        <span class="label">Consultation Fee</span>
+        <p>${{ "%.2f"|format(bill_data.consultation_fee or 0) }}</p>
+    </div>
+
+    {% if bill_data.medications %}
+        {% for m in bill_data.medications %}
+        <div class="patient-profile-box">
+            <span class="label">{{ m.name }}</span>
+            <p>${{ "%.2f"|format(m.price) }}</p>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if bill_data.get("Blood Test") %}
+    <div class="patient-profile-box">
+        <span class="label">Blood Test</span>
+        <p>${{ "%.2f"|format(bill_data["Blood Test"]) }}</p>
+    </div>
+    {% endif %}
+
+    {% if bill_data.get("Urine Test") %}
+    <div class="patient-profile-box">
+        <span class="label">Urine Test</span>
+        <p>${{ "%.2f"|format(bill_data["Urine Test"]) }}</p>
+    </div>
+    {% endif %}
+
+    <div class="patient-profile-box" style="border-top: 1px solid #e2e8f0; margin-top: 8px; padding-top: 12px;">
+        <span class="label"><strong>Total</strong></span>
+        <p><strong>${{ "%.2f"|format(bill_data.total_price) }}</strong></p>
+    </div>
+
+</div>
+
+<!-- ===================== -->
+<!-- LAB RESULT (if any)   -->
+<!-- ===================== -->
+{% if lab %}
+<div class="patient-profile-card">
+
+    <h3 class="patient-section-title">
+        Lab Result — {{ lab.test_type.replace("_", " ").title() }}
+    </h3>
+
+    <div class="patient-profile-box">
+        <span class="label">Status</span>
+        <p>
+            {% if lab.result_status in (none, "pending") %}
+                <span style="color:#dc2626; font-weight:600;">Pending</span>
+            {% elif lab.result_status == "normal" %}
+                <span style="color:#16a34a; font-weight:600;">Normal</span>
+            {% else %}
+                <span style="color:#f59e0b; font-weight:600;">Abnormal</span>
+            {% endif %}
+        </p>
+    </div>
+
+    {% if lab.result_date %}
+    <div class="patient-profile-box">
+        <span class="label">Result Date</span>
+        <p>{{ lab.result_date.strftime('%d %b %Y, %I:%M %p') }}</p>
+    </div>
+    {% endif %}
+
+    {% if lab.result_status not in (none, "pending") %}
+
+        {% set r = lab.parsed_results or {} %}
+
+        {% if lab.test_type == "blood_test" %}
+
+            {% set fbc  = r.get("full_blood_count", {}) %}
+            {% set lipid = r.get("lipid_panel", {}) %}
+            {% set meta  = r.get("metabolic_panel", {}) %}
+
+            <h4 style="margin: 16px 0 8px;">Full Blood Count</h4>
+            <div class="patient-profile-box">
+                <span class="label">WBC</span>
+                <p>{{ fbc.get("wbc", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">Hemoglobin</span>
+                <p>{{ fbc.get("hemoglobin", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">Platelets</span>
+                <p>{{ fbc.get("platelets", "N/A") }}</p>
+            </div>
+
+            <h4 style="margin: 16px 0 8px;">Lipid Panel</h4>
+            <div class="patient-profile-box">
+                <span class="label">Total Cholesterol</span>
+                <p>{{ lipid.get("total_cholesterol", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">Triglycerides</span>
+                <p>{{ lipid.get("triglycerides", "N/A") }}</p>
+            </div>
+
+            <h4 style="margin: 16px 0 8px;">Metabolic Panel</h4>
+            <div class="patient-profile-box">
+                <span class="label">Fasting Glucose</span>
+                <p>{{ meta.get("fasting_glucose", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">Creatinine</span>
+                <p>{{ meta.get("creatinine", "N/A") }}</p>
+            </div>
+
+        {% elif lab.test_type == "urine_test" %}
+
+            {% set phys  = r.get("physical", {}) %}
+            {% set chem  = r.get("chemical", {}) %}
+            {% set micro = r.get("microscopic", {}) %}
+
+            <h4 style="margin: 16px 0 8px;">Physical</h4>
+            <div class="patient-profile-box">
+                <span class="label">Color</span>
+                <p>{{ phys.get("color", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">Clarity</span>
+                <p>{{ phys.get("clarity", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">Specific Gravity</span>
+                <p>{{ phys.get("specific_gravity", "N/A") }}</p>
+            </div>
+
+            <h4 style="margin: 16px 0 8px;">Chemical</h4>
+            {% for field in ["ph","protein","glucose","ketones","blood","nitrites","leukocyte_esterase","bilirubin"] %}
+            <div class="patient-profile-box">
+                <span class="label">{{ field.replace("_", " ").title() }}</span>
+                <p>{{ chem.get(field, "N/A") }}</p>
+            </div>
+            {% endfor %}
+
+            <h4 style="margin: 16px 0 8px;">Microscopic</h4>
+            <div class="patient-profile-box">
+                <span class="label">RBC</span>
+                <p>{{ micro.get("rbc", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">WBC</span>
+                <p>{{ micro.get("wbc", "N/A") }}</p>
+            </div>
+            <div class="patient-profile-box">
+                <span class="label">Bacteria</span>
+                <p>{{ micro.get("bacteria", "N/A") }}</p>
+            </div>
+
+        {% endif %}
+
+    {% else %}
+        <p style="color:#64748b; margin-top:8px;">Results are still being processed.</p>
+    {% endif %}
+
+</div>
+{% endif %}
+
+{% else %}
+<p>Record not found.</p>
+{% endif %}
+
+<!-- ===================== -->
+<!-- BACK BUTTON           -->
+<!-- ===================== -->
+<div style="margin-top: 20px;">
+    <a href="/patient/records">
+        <button class="patient-btn-view">← Back to Records</button>
+    </a>
+</div>
+
+<!-- ===================== -->
+<!-- CHART.JS              -->
+<!-- ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+
+    const systolicData  = {{ systolic     | tojson }};
+    const diastolicData = {{ diastolic    | tojson }};
+    const tempData      = {{ temperatures | tojson }};
+
+    const bpCanvas   = document.getElementById("bpChart");
+    const tempCanvas = document.getElementById("tempChart");
+
+    if (bpCanvas && systolicData.length) {
+        new Chart(bpCanvas, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Systolic",
+                        data: systolicData,
+                        borderColor: "#ef4444",
+                        tension: 0.3,
+                        fill: false
+                    },
+                    {
+                        label: "Diastolic",
+                        data: diastolicData,
+                        borderColor: "#3b82f6",
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
+            },
+            options: { parsing: false, responsive: true }
+        });
+    }
+
+    if (tempCanvas && tempData.length) {
+        new Chart(tempCanvas, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Temperature (°C)",
+                        data: tempData,
+                        borderColor: "#f59e0b",
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
+            },
+            options: { parsing: false, responsive: true }
+        });
+    }
+
+})();
+</script>
+
+{% endblock %}
