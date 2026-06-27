@@ -1,6 +1,7 @@
 import mysql.connector
 from dotenv import load_dotenv
 import os
+from werkzeug.security import generate_password_hash
 
 load_dotenv()
 
@@ -26,12 +27,24 @@ cursor.execute("USE polyclinic")
 cursor.execute("""
 CREATE TABLE user_account (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(100) UNIQUE,
+    email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255),
     user_type ENUM('patient','doctor','nurse','admin'),
     status ENUM('active','suspended') DEFAULT 'active'
 )
 """)
+
+# ======================
+# Create default admin account
+# ======================
+email = "admin@polyclinic.com"
+password = generate_password_hash("Admin@123")
+
+cursor.execute("""
+    INSERT INTO user_account (email, password, user_type, status)
+    VALUES (%s, %s, %s, %s)
+""", (email, password, "admin", "active"))
+
 
 # ======================
 # PATIENT
@@ -43,7 +56,6 @@ CREATE TABLE patient (
     full_name VARCHAR(100),
     nric VARCHAR(20),
     phone VARCHAR(20),
-    email VARCHAR(100),
     date_of_birth DATE,
     FOREIGN KEY (user_id) REFERENCES user_account(user_id)
 )
@@ -64,18 +76,6 @@ CREATE TABLE medical_staff (
 )
 """)
 
-# ======================
-# WEB ADMIN
-# ======================
-cursor.execute("""
-CREATE TABLE web_admin (
-    admin_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    full_name VARCHAR(100),
-    admin_role ENUM('account_manager','queue_manager','system_admin'),
-    FOREIGN KEY (user_id) REFERENCES user_account(user_id)
-)
-""")
 
 # ======================
 # APPOINTMENT
@@ -107,7 +107,7 @@ CREATE TABLE walk_in_queue (
     queue_status ENUM('waiting','in_consultation','completed','cancelled'),
     FOREIGN KEY (patient_id) REFERENCES patient(patient_id),
     FOREIGN KEY (assigned_staff_id) REFERENCES medical_staff(staff_id),
-    FOREIGN KEY (managed_by_admin_id) REFERENCES web_admin(admin_id)
+    FOREIGN KEY (managed_by_admin_id) REFERENCES user_account(user_id)
 )
 """)
 
