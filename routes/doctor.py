@@ -108,7 +108,6 @@ def consultation(queue_id):
     # CREATE PATIENT NOTIFICATION
     # ======================
 
-    # get patient + consultation room
     cursor.execute("""
         SELECT
             q.patient_id,
@@ -117,6 +116,8 @@ def consultation(queue_id):
         JOIN appointment a
             ON q.appointment_id = a.appointment_id
         WHERE q.queue_id = %s
+        AND q.queue_status = 'in_consultation'
+        AND DATE(a.appointment_date) = CURDATE()
     """, (queue_id,))
 
     result = cursor.fetchone()
@@ -132,7 +133,8 @@ def consultation(queue_id):
         )
 
         cursor.execute("""
-            INSERT INTO notification (
+            INSERT INTO notification
+            (
                 patient_id,
                 message,
                 is_read

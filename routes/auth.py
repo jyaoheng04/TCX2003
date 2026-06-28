@@ -66,7 +66,7 @@ def login():
         elif user["user_type"] == "patient":
             return redirect("/patient/dashboard")
 
-    flash("Invalid email or password")
+    flash("Invalid email or password", "error")
     return redirect("/")
 
 
@@ -131,7 +131,7 @@ def register():
 
         conn.commit()
 
-        flash("Registration successful")
+        flash("Registration successful", "success")
         return redirect("/")
 
     except Exception as e:
@@ -222,4 +222,5 @@ def register_medical_staff():
 @auth.route("/logout")
 def logout():
     session.clear()
+    flash("You have been logged out", "info")
     return redirect("/")

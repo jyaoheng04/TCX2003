@@ -293,6 +293,9 @@ body::before{
   background: #3b82f6;
 }
 
+.toast.error{
+  background: #ef4444;
+}
 @keyframes slideIn{
   from{transform: translateX(20px); opacity: 0;}
   to{transform: translateX(0); opacity: 1;}
@@ -458,10 +461,11 @@ function handleLogin(e){
   }, 1000); // adjust delay for animation
 }
 
-const flashMessage = "{{ get_flashed_messages() | join(' ') }}";
+const flashMessage = "{{ get_flashed_messages(with_categories=true)[0][1] if get_flashed_messages(with_categories=true) else '' }}";
+const flashType = "{{ get_flashed_messages(with_categories=true)[0][0] if get_flashed_messages(with_categories=true) else 'error' }}";
 
-if (flashMessage && flashMessage.trim() !== "") {
-  showToast(flashMessage, "error");
+if (flashMessage.trim() !== "") {
+    showToast(flashMessage, flashType);
 }
 </script>
 </body>

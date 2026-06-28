@@ -208,15 +208,17 @@ def create():
 
         # consultation -> consultation room
         if appointment_type == "consultation":
-
+            # Get the consultation room assigned to the selected doctor
             cursor.execute("""
-                SELECT room_id, room_name
-                FROM medical_room
-                WHERE room_type = 'consultation'
-                AND status = 'available'
-                ORDER BY RAND()
-                LIMIT 1
-            """)
+                SELECT
+                    mr.room_id,
+                    mr.room_name
+                FROM medical_staff ms
+                JOIN medical_room mr
+                    ON ms.room_id = mr.room_id
+                WHERE ms.staff_id = %s
+            """, (doctor_id,))
+
 
         # blood/urine -> laboratory room
         else:
