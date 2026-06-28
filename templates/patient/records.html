@@ -25,24 +25,51 @@
                     {% if record.doctor_name %}• {{ record.doctor_name }}{% endif %}
                 </p>
             </div>
-
+            
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
 
+                <!-- Appointment / Consultation Status -->
+                {% if record.queue_status == "waiting" %}
+                    <span class="patient-record-status"
+                        style="background:#dbeafe; color:#1e40af;">
+                        Waiting
+                    </span>
+
+                {% elif record.queue_status == "completed" %}
+                    <span class="patient-record-status"
+                        style="background:#dcfce7; color:#166534;">
+                        Completed
+                    </span>
+
+                {% elif record.queue_status == "cancelled" %}
+                    <span class="patient-record-status"
+                        style="background:#fee2e2; color:#991b1b;">
+                        Cancelled
+                    </span>
+                {% endif %}
+
+                <!-- Lab Result Status -->
                 {% if record.lab_test_type %}
                     {% if record.lab_result_status in (none, "pending") %}
-                        <span class="patient-record-status" style="background:#fef9c3; color:#854d0e;">
+                        <span class="patient-record-status"
+                            style="background:#fef9c3; color:#854d0e;">
                             Lab Pending
                         </span>
+
                     {% elif record.lab_result_status == "normal" %}
-                        <span class="patient-record-status" style="background:#dcfce7; color:#166534;">
+                        <span class="patient-record-status"
+                            style="background:#dcfce7; color:#166534;">
                             Lab Normal
                         </span>
+
                     {% else %}
-                        <span class="patient-record-status" style="background:#fee2e2; color:#991b1b;">
+                        <span class="patient-record-status"
+                            style="background:#fee2e2; color:#991b1b;">
                             Lab Abnormal
                         </span>
                     {% endif %}
                 {% endif %}
+
             </div>
 
         </div>

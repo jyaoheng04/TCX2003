@@ -206,6 +206,43 @@ def create():
             )
 
         # ======================
+        # ASSIGN ROOM BASED ON APPOINTMENT TYPE
+        # ======================
+
+        # consultation -> consultation room
+        if appointment_type == "consultation":
+
+            cursor.execute("""
+                SELECT room_id, room_name
+                FROM medical_room
+                WHERE room_type = 'consultation'
+                AND status = 'available'
+                ORDER BY RAND()
+                LIMIT 1
+            """)
+
+        # blood/urine -> laboratory room
+        else:
+
+            cursor.execute("""
+                SELECT room_id, room_name
+                FROM medical_room
+                WHERE room_type = 'laboratory'
+                AND status = 'available'
+                ORDER BY RAND()
+                LIMIT 1
+            """)
+
+        room = cursor.fetchone()
+
+        if not room:
+            flash("No available room found.", "error")
+            return redirect("/patient/create")
+
+        room_id = room["room_id"]
+        room_name = room["room_name"]
+
+        # ======================
         # INSERT APPOINTMENT
         # ======================
         # patient_id = 1
@@ -233,7 +270,7 @@ def create():
             appointment_type,
             reason,
             appointment_datetime,
-            "Room 3A"
+            room_name
         ))
 
         appointment_id = cursor.lastrowid
@@ -261,31 +298,6 @@ def create():
             next_number = last_num + 1
 
         queue_number = f"{prefix}{next_number:03d}"
-
-        # ======================
-        # GET ROOM ID
-        # ======================
-
-        if appointment_type == "consultation":
-
-            cursor.execute("""
-                SELECT room_id
-                FROM medical_staff
-                WHERE staff_id = %s
-            """, (doctor_id,))
-
-            room_id = cursor.fetchone()["room_id"]
-
-        else:
-            cursor.execute("""
-                SELECT room_id
-                FROM medical_room
-                WHERE room_type = 'laboratory'
-                ORDER BY RAND()
-                LIMIT 1
-            """)
-
-            room_id = cursor.fetchone()["room_id"]
 
         # ======================
         # INSERT INTO QUEUE
@@ -707,12 +719,15 @@ def records():
             c.consultation_time,
             ms.full_name AS doctor_name,
             lr.test_type AS lab_test_type,
-            lr.result_status AS lab_result_status
+            lr.result_status AS lab_result_status,
+            a.queue_status
         FROM consultation c
         LEFT JOIN medical_staff ms
             ON c.staff_id = ms.staff_id
         LEFT JOIN lab_result lr
             ON lr.consultation_id = c.consultation_id
+        LEFT JOIN appointment a
+            ON c.appointment_id = a.appointment_id
         WHERE c.patient_id = %s
         ORDER BY c.consultation_time DESC
     """, (patient_id,))
@@ -1206,6 +1221,41 @@ def create_multi():
             )
 
         # ======================
+        # ASSIGN ROOM
+        # ======================
+
+        if t == "consultation":
+
+            cursor.execute("""
+                SELECT room_id, room_name
+                FROM medical_room
+                WHERE room_type = 'consultation'
+                AND status = 'available'
+                ORDER BY RAND()
+                LIMIT 1
+            """)
+
+        else:
+
+            cursor.execute("""
+                SELECT room_id, room_name
+                FROM medical_room
+                WHERE room_type = 'laboratory'
+                AND status = 'available'
+                ORDER BY RAND()
+                LIMIT 1
+            """)
+
+        room = cursor.fetchone()
+
+        if not room:
+            flash("No available room found.", "error")
+            return redirect("/patient/create-multi")
+
+        room_id = room["room_id"]
+        room_name = room["room_name"]
+
+        # ======================
         # INSERT SINGLE CONSULTATION
         # ======================
         consult_time = datetime.strptime(
@@ -1250,7 +1300,7 @@ def create_multi():
                 t,
                 reason,
                 appt_dt,
-                "Room 3A"
+                room_name
             ))
 
             appointment_id = cursor.lastrowid
@@ -1278,32 +1328,6 @@ def create_multi():
                 next_number = last_num + 1
 
             queue_number = f"{prefix}{next_number:03d}"
-
-            # ======================
-            # GET ROOM ID
-            # ======================
-
-            if t == "consultation":
-
-                cursor.execute("""
-                    SELECT room_id
-                    FROM medical_staff
-                    WHERE staff_id = %s
-                """, (doctor_id,))
-
-                room_id = cursor.fetchone()["room_id"]
-
-            else:
-
-                cursor.execute("""
-                    SELECT room_id
-                    FROM medical_room
-                    WHERE room_type = 'laboratory'
-                    ORDER BY RAND()
-                    LIMIT 1
-                """)
-
-                room_id = cursor.fetchone()["room_id"]
 
 
             # ======================
