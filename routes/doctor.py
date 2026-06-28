@@ -200,6 +200,13 @@ def save_consultation():
     db = get_db()
     cursor = db.cursor()
 
+    doctor = get_logged_in_staff()
+
+    if not doctor:
+        return redirect("/")
+
+    staff_id = doctor["staff_id"]
+
     queue_id = request.form["queue_id"]
     patient_id = request.form["patient_id"]
 
@@ -248,26 +255,54 @@ def save_consultation():
         "medications": medications,
         "total_price": total_bill
     })
+    
+    # ==========================================
+    # CHECK IF CONSULTATION ROW ALREADY EXISTS
+    # (created from patient appointment booking)
+    # ==========================================
 
     cursor.execute("""
-        INSERT INTO consultation (
-            queue_id, patient_id, staff_id,
-            symptoms, doctor_notes, prescription_notes,
-            temperature, blood_pressure,
-            visit_type, service_type, medical_bill, consultation_time
-        )
-        VALUES (%s,%s,1,%s,%s,%s,%s,%s,'walkin','consultation',%s,NOW())
-    """, (
-        queue_id,
-        patient_id,
-        symptoms,
-        doctor_notes,
-        prescription_json,
-        temp,
-        bp,
-        bill_json
-    ))
-    consultation_id = cursor.lastrowid
+        SELECT consultation_id
+        FROM consultation
+        WHERE queue_id = %s
+        LIMIT 1
+    """, (queue_id,))
+
+    existing = cursor.fetchone()
+
+
+    # ==========================================
+    # APPOINTMENT CASE → UPDATE EXISTING ROW
+    # ==========================================
+
+    if existing:
+
+        consultation_id = existing[0]
+
+        cursor.execute("""
+            UPDATE consultation
+            SET
+                staff_id = %s,
+                symptoms = %s,
+                doctor_notes = %s,
+                prescription_notes = %s,
+                temperature = %s,
+                blood_pressure = %s,
+                medical_bill = %s,
+                service_type = 'consultation',
+                visit_type = 'appointment'
+            WHERE queue_id = %s
+        """, (
+            staff_id,                 
+            symptoms,
+            doctor_notes,
+            prescription_json,
+            temp,
+            bp,
+            bill_json,
+            queue_id
+        ))
+
     if test_order in ["blood", "urine"]:
 
         test_type = 'blood_test' if test_order == "blood" else 'urine_test'
