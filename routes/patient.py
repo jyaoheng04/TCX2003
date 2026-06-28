@@ -70,12 +70,12 @@ def appointments():
         return redirect("/")
 
     # auto-complete appointments whose datetime has passed
-    cursor.execute("""
-        UPDATE appointment
-        SET queue_status = 'completed'
-        WHERE appointment_date <= NOW()
-        AND queue_status = 'waiting'
-    """)
+    # cursor.execute("""
+    #     UPDATE appointment
+    #     SET queue_status = 'completed'
+    #     WHERE appointment_date <= NOW()
+    #     AND queue_status = 'waiting'
+    # """)
 
     db.commit()
 
@@ -184,9 +184,6 @@ def create():
                     f"{date} {time}",
                     "%Y-%m-%d %H:%M"
                 )
-
-                if appointment_datetime <= datetime.now():
-                    errors["date"] = "Appointment must be in the future."
 
             except ValueError:
                 errors["date"] = "Invalid date/time."
