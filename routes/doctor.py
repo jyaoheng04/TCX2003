@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request,session, redirect, url_for
 import json
 import mysql.connector
 import os
@@ -21,6 +21,32 @@ def get_db():
         database=os.getenv("DB_NAME"),
         port=os.getenv("DB_PORT")
     )
+
+# ======================
+# GET LOGGED IN STAFF
+# ======================
+def get_logged_in_staff():
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return None
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT *
+        FROM medical_staff
+        WHERE user_id = %s
+    """, (user_id,))
+
+    staff = cursor.fetchone()
+
+    cursor.close()
+    db.close()
+
+    return staff
 
 # dashboard (QUEUE)
 @doctor_bp.route("/dashboard")
@@ -276,9 +302,11 @@ def save_consultation():
         """, (queue_id,))
 
         cursor.execute("""
-            UPDATE appointment
-            SET queue_status = 'completed'
-            WHERE queue_id = %s
+            UPDATE appointment a
+            JOIN queue q
+                ON a.appointment_id = q.appointment_id
+            SET a.queue_status = 'completed'
+            WHERE q.queue_id = %s
         """, (queue_id,))
 
     db.commit()
@@ -588,40 +616,63 @@ def patient_detail(patient_id):
 @doctor_bp.route("/queue-board")
 def queue_board():
 
+    # ======================
+    # GET LOGGED-IN STAFF
+    # ======================
+    doctor = get_logged_in_staff()
+
+    if not doctor:
+        return redirect("/")
+
+    # Only doctors can access this page
+    if doctor["role"] != "doctor":
+        return redirect("/")
+
+    doctor_id = doctor["staff_id"]
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    doctor_id = 1  # Doctor 1 for now
-
-    cursor.execute("""
-        SELECT full_name, room_id
-        FROM medical_staff
-        WHERE staff_id=%s
-    """, (doctor_id,))
-    doctor = cursor.fetchone()
-
+    # ======================
+    # GET CONSULTATION ROOM
+    # ======================
     cursor.execute("""
         SELECT room_name
         FROM medical_room
-        WHERE room_id=%s
+        WHERE room_id = %s
     """, (doctor["room_id"],))
     room = cursor.fetchone()
 
+    # ======================
+    # CURRENT PATIENT
+    # ======================
     cursor.execute("""
-        SELECT queue_number
-        FROM queue
-        WHERE assigned_staff_id=%s
-        AND queue_status='in_consultation'
+        SELECT
+            q.queue_number
+        FROM queue q
+        JOIN appointment a
+            ON q.appointment_id = a.appointment_id
+        WHERE q.assigned_staff_id = %s
+          AND q.queue_status = 'in_consultation'
+          AND DATE(a.appointment_date) = CURDATE()
+        ORDER BY a.appointment_date
         LIMIT 1
     """, (doctor_id,))
     current = cursor.fetchone()
 
+    # ======================
+    # WAITING QUEUE
+    # ======================
     cursor.execute("""
-        SELECT queue_number
-        FROM queue
-        WHERE assigned_staff_id=%s
-        AND queue_status='waiting'
-        ORDER BY queue_id
+        SELECT
+            q.queue_number
+        FROM queue q
+        JOIN appointment a
+            ON q.appointment_id = a.appointment_id
+        WHERE q.assigned_staff_id = %s
+          AND q.queue_status = 'waiting'
+          AND DATE(a.appointment_date) = CURDATE()
+        ORDER BY a.appointment_date, q.queue_id
     """, (doctor_id,))
     waiting = cursor.fetchall()
 
