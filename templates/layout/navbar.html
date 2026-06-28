@@ -4,14 +4,25 @@
 
     <div class="nav-right">
 
-        <span class="status">
-            <span class="dot"></span>
-            {% if system_status %}
-                {{ system_status }}
-            {% else %}
-                Online
-            {% endif %}
-        </span>
+        {% if role == "patient" %}
+        <div class="notification-wrapper">
+
+            <button id="notificationBtn" class="notification-btn">
+
+                <i class="fa-solid fa-bell"></i>
+
+                <span id="notificationCount" class="notification-count">0</span>
+
+            </button>
+            
+            <div id="notificationDropdown" class="notification-dropdown">
+                <div id="notificationList">
+                    Loading...
+                </div>
+            </div>
+
+        </div>
+        {% endif %}
 
         <a href="/logout" class="logout">Logout</a>
 

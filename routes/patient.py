@@ -1395,3 +1395,65 @@ def create_multi():
         role="patient",
         active_page="appointments"
     )
+
+# ======================
+# GET NOTIFICATIONS
+# ======================
+
+@patient_bp.route('/notifications')
+def notifications():
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return {"notifications": []}
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            notification_id,
+            message,
+            is_read,
+            created_at
+        FROM notification
+        WHERE patient_id = %s
+        ORDER BY created_at DESC
+    """, (patient_id,))
+
+    notifications = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return {"notifications": notifications}
+
+
+# ======================
+# MARK AS READ
+# ======================
+@patient_bp.route('/read-notification/<int:notification_id>', methods=['POST'])
+def read_notification(notification_id):
+
+    patient_id = get_logged_in_patient_id()
+
+    if not patient_id:
+        return {"success": False}
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("""
+        UPDATE notification
+        SET is_read = TRUE
+        WHERE notification_id = %s
+        AND patient_id = %s
+    """, (notification_id, patient_id))
+
+    db.commit()
+
+    cursor.close()
+    db.close()
+
+    return {"success": True}

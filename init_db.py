@@ -208,6 +208,22 @@ CREATE TABLE lab_result (
 )
 """)
 
+# ======================
+# NOTIFICATION
+# ======================
+cursor.execute("""
+CREATE TABLE notification (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (patient_id)
+        REFERENCES patient(patient_id)
+        ON DELETE CASCADE
+)
+""")
 
 # ==========================================
 # DEFAULT MEDICAL ROOMS

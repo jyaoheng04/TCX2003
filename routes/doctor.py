@@ -104,6 +104,45 @@ def consultation(queue_id):
         AND queue_status = 'waiting'
     """, (queue_id,))
 
+    # ======================
+    # CREATE PATIENT NOTIFICATION
+    # ======================
+
+    # get patient + consultation room
+    cursor.execute("""
+        SELECT
+            q.patient_id,
+            a.consultation_room
+        FROM queue q
+        JOIN appointment a
+            ON q.appointment_id = a.appointment_id
+        WHERE q.queue_id = %s
+    """, (queue_id,))
+
+    result = cursor.fetchone()
+
+    if result:
+
+        patient_id = result["patient_id"]
+        room = result["consultation_room"]
+
+        message = (
+            f"Your appointment is now in progress. "
+            f"Please proceed to consultation room {room} now."
+        )
+
+        cursor.execute("""
+            INSERT INTO notification (
+                patient_id,
+                message,
+                is_read
+            )
+            VALUES (%s, %s, FALSE)
+        """, (
+            patient_id,
+            message
+        ))
+
     # Update appointment status
     cursor.execute("""
         UPDATE appointment a

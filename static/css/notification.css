@@ -1,0 +1,51 @@
+.notification-wrapper{
+    position:relative;
+    margin-right:20px;
+}
+
+.notification-btn{
+    background:none;
+    border:none;
+    font-size:20px;
+    cursor:pointer;
+    position:relative;
+    color:#333;
+}
+
+.notification-count{
+    position:absolute;
+    top:-8px;
+    right:-10px;
+    background:red;
+    color:white;
+    border-radius:50%;
+    width:18px;
+    height:18px;
+    font-size:12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.notification-dropdown{
+    position:absolute;
+    right:0;
+    top:40px;
+    width:300px;
+    background:white;
+    border:1px solid #ddd;
+    display:none;
+    max-height:300px;
+    overflow-y:auto;
+    z-index:999;
+}
+
+.notification-item{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    cursor:pointer;
+}
+
+.notification-item:hover{
+    background:#f5f5f5;
+}
