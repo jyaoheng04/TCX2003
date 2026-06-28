@@ -33,8 +33,7 @@
                     </h4>
 
                     <p class="patient-queue">
-                        <!-- for cindy: reference to queue number here -->
-                        Queue Number: <strong>#{{ appointment.appointment_id }}</strong>
+                        Queue Number: <strong>#{{ appointment.queue_number }}</strong>
                     </p>
 
                     {% if appointment.appointment_type == "consultation" %}
