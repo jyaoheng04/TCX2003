@@ -627,7 +627,11 @@ def cancel_appointment(appointment_id):
 
         return redirect('/patient/appointments')
 
-    # cancel appointment
+    # ======================
+    # CANCEL APPOINTMENT
+    # ======================
+
+    # update appointment table
     cursor.execute("""
         UPDATE appointment
         SET queue_status = 'cancelled'
@@ -636,6 +640,15 @@ def cancel_appointment(appointment_id):
     """, (
         appointment_id,
         patient_id
+    ))
+
+    # update related queue table
+    cursor.execute("""
+        UPDATE queue
+        SET queue_status = 'cancelled'
+        WHERE appointment_id = %s
+    """, (
+        appointment_id,
     ))
 
     db.commit()
