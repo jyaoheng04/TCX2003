@@ -60,14 +60,10 @@ def dashboard():
                 q.queue_id,
                 q.queue_number,
                 q.queue_status,
-                p.full_name,
-                c.consultation_time
+                p.full_name
             FROM queue q
             JOIN patient p
                 ON p.patient_id = q.patient_id
-            JOIN consultation c
-                ON c.queue_id = q.queue_id
-            WHERE c.service_type = 'consultation'
             ORDER BY
                 CASE
                     WHEN q.queue_status = 'waiting' THEN 0
@@ -75,8 +71,7 @@ def dashboard():
                     WHEN q.queue_status = 'completed' THEN 2
                     WHEN q.queue_status = 'cancelled' THEN 3
                     ELSE 4
-                END,
-                c.consultation_time
+                END
         """)
 
     queue = cursor.fetchall()
@@ -254,16 +249,23 @@ def save_consultation():
     symptoms = request.form["symptoms"]
     doctor_notes = request.form["doctor_notes"]
     temp = request.form["temperature"]
-    bp = request.form["blood_pressure"]
+    
+    bp_sys = request.form.get("bp_sys")
+    bp_dia = request.form.get("bp_dia")
 
-    #lab test selection
+    bp = f"{bp_sys}/{bp_dia}"
+
     test_order = request.form.get("test_order", "none")
 
-    # prescription
+    # -------------------------
+    # Prescription
+    # -------------------------
+
     medicine_names = request.form.getlist("medicine[]")
     dosage_list = request.form.getlist("dosage[]")
 
     prescription = []
+
     for m, d in zip(medicine_names, dosage_list):
         if m.strip():
             prescription.append({
@@ -273,7 +275,10 @@ def save_consultation():
 
     prescription_json = json.dumps(prescription)
 
-    # billing
+    # -------------------------
+    # Billing
+    # -------------------------
+
     consultation_fee = 18.50
     medications = []
     medicine_total = 0
@@ -296,25 +301,19 @@ def save_consultation():
         "medications": medications,
         "total_price": total_bill
     })
-    
-    # ==========================================
-    # CHECK IF CONSULTATION ROW ALREADY EXISTS
-    # (created from patient appointment booking)
-    # ==========================================
+
+    # =====================================================
+    # Check if consultation already exists (Appointment)
+    # =====================================================
 
     cursor.execute("""
         SELECT consultation_id
         FROM consultation
-        WHERE queue_id = %s
+        WHERE queue_id=%s
         LIMIT 1
     """, (queue_id,))
 
     existing = cursor.fetchone()
-
-
-    # ==========================================
-    # APPOINTMENT CASE → UPDATE EXISTING ROW
-    # ==========================================
 
     if existing:
 
@@ -323,69 +322,143 @@ def save_consultation():
         cursor.execute("""
             UPDATE consultation
             SET
-                staff_id = %s,
-                symptoms = %s,
-                doctor_notes = %s,
-                prescription_notes = %s,
-                temperature = %s,
-                blood_pressure = %s,
-                medical_bill = %s,
-                service_type = 'consultation',
-                visit_type = 'appointment'
-            WHERE queue_id = %s
+                staff_id=%s,
+                symptoms=%s,
+                doctor_notes=%s,
+                prescription_notes=%s,
+                temperature=%s,
+                blood_pressure=%s,
+                medical_bill=%s,
+                service_type='consultation',
+                visit_type='appointment',
+                consultation_time=NOW()
+            WHERE consultation_id=%s
         """, (
-            staff_id,                 
+            staff_id,
             symptoms,
             doctor_notes,
             prescription_json,
             temp,
             bp,
             bill_json,
-            queue_id
+            consultation_id
         ))
 
-    if test_order in ["blood", "urine"]:
+    else:
 
-        test_type = 'blood_test' if test_order == "blood" else 'urine_test'
+        # ==========================================
+        # Walk-in consultation
+        # ==========================================
 
         cursor.execute("""
-            INSERT INTO lab_result (
+            SELECT appointment_id
+            FROM queue
+            WHERE queue_id=%s
+        """, (queue_id,))
+
+        row = cursor.fetchone()
+
+        appointment_id = row[0] if row and row[0] else None
+
+        visit_type = "appointment" if appointment_id else "walkin"
+
+        cursor.execute("""
+            INSERT INTO consultation(
+                appointment_id,
+                queue_id,
+                patient_id,
+                staff_id,
+                visit_type,
+                service_type,
+                symptoms,
+                doctor_notes,
+                prescription_notes,
+                temperature,
+                blood_pressure,
+                medical_bill,
+                consultation_time
+            )
+            VALUES(
+                %s,%s,%s,%s,
+                %s,'consultation',
+                %s,%s,%s,%s,%s,%s,NOW()
+            )
+        """, (
+            appointment_id,
+            queue_id,
+            patient_id,
+            staff_id,
+            visit_type,
+            symptoms,
+            doctor_notes,
+            prescription_json,
+            temp,
+            bp,
+            bill_json
+        ))
+
+        consultation_id = cursor.lastrowid
+
+    # =====================================================
+    # Lab Test
+    # =====================================================
+
+    if test_order in ("blood", "urine"):
+
+        test_type = "blood_test" if test_order == "blood" else "urine_test"
+
+        cursor.execute("""
+            INSERT INTO lab_result(
                 consultation_id,
                 test_type,
                 result_details,
                 result_date,
                 result_status
             )
-            VALUES (%s,%s,%s,NOW(),%s)
+            VALUES(
+                %s,
+                %s,
+                NULL,
+                NULL,
+                NULL
+            )
         """, (
             consultation_id,
-            test_type,
-            None,
-            None
+            test_type
         ))
 
+        # cursor.execute("""
+        #     UPDATE queue
+        #     SET queue_status='pending'
+        #     WHERE queue_id=%s
+        # """, (queue_id,))
+
         cursor.execute("""
-            UPDATE queue
-            SET queue_status = 'pending'
-            WHERE queue_id = %s
+            UPDATE appointment a
+            JOIN queue q
+                ON a.appointment_id=q.appointment_id
+            SET a.queue_status='waiting'
+            WHERE q.queue_id=%s
         """, (queue_id,))
 
     else:
+
         cursor.execute("""
             UPDATE queue
-            SET queue_status = 'completed'
-            WHERE queue_id = %s
+            SET queue_status='completed'
+            WHERE queue_id=%s
         """, (queue_id,))
 
         cursor.execute("""
             UPDATE appointment a
             JOIN queue q
-                ON a.appointment_id = q.appointment_id
-            SET a.queue_status = 'completed'
-            WHERE q.queue_id = %s
+                ON a.appointment_id=q.appointment_id
+            SET a.queue_status='completed'
+            WHERE q.queue_id=%s
         """, (queue_id,))
 
     db.commit()
+
     cursor.close()
     db.close()
 
@@ -411,12 +484,12 @@ def labs():
             ON p.patient_id = c.patient_id
     """
 
-    if status == "pending":
-        query += """
-            WHERE l.result_status IS NULL
-        """
+    # if status == "pending":
+    #     query += """
+    #         WHERE l.result_status IS NULL
+    #     """
 
-    elif status == "ready":
+    if status == "ready":
         query += """
             WHERE l.result_status IS NOT NULL
         """
