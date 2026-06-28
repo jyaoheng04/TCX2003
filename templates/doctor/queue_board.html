@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation Queue Board</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial, Helvetica, sans-serif;
+        }
+
+        body{
+            background:#0f172a;
+            color:white;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .board{
+            width:90%;
+            max-width:1200px;
+        }
+
+        .header{
+            text-align:center;
+            margin-bottom:40px;
+        }
+
+        .header h1{
+            font-size:50px;
+        }
+
+        .header h2{
+            color:#38bdf8;
+            margin-top:10px;
+        }
+
+        .container{
+            display:grid;
+            grid-template-columns:2fr 1fr;
+            gap:40px;
+        }
+
+        .now-serving{
+
+            background:#1e293b;
+            border-radius:20px;
+            padding:40px;
+            text-align:center;
+        }
+
+        .now-serving h3{
+            font-size:28px;
+            margin-bottom:30px;
+        }
+
+        .queue-number{
+            font-size:120px;
+            font-weight:bold;
+            color:#22c55e;
+        }
+
+        .waiting{
+
+            background:#1e293b;
+            border-radius:20px;
+            padding:30px;
+        }
+
+        .waiting h3{
+            text-align:center;
+            margin-bottom:25px;
+            font-size:28px;
+        }
+
+        .waiting-item{
+
+            background:#334155;
+            padding:18px;
+            margin-bottom:15px;
+            border-radius:10px;
+            text-align:center;
+            font-size:35px;
+            font-weight:bold;
+        }
+
+        .footer{
+
+            margin-top:30px;
+            text-align:center;
+            font-size:20px;
+            color:#94a3b8;
+        }
+    </style>
+
+    <!-- Refresh every 5 seconds -->
+    <meta http-equiv="refresh" content="5">
+
+</head>
+<body>
+
+<div class="board">
+
+    <div class="header">
+
+        <h1>CONSULTATION ROOM</h1>
+
+        <h2>Room: {{ room.room_name }}</h2>
+
+        <p>Consultanting Doctor: {{ doctor.full_name }}</p>
+
+    </div>
+
+    <div class="container">
+
+        <div class="now-serving">
+
+            <h3>NOW SERVING</h3>
+
+            {% if current %}
+                <div class="queue-number">
+                    {{ current.queue_number }}
+                </div>
+            {% else %}
+                <div class="queue-number">
+                    ---
+                </div>
+            {% endif %}
+
+        </div>
+
+        <div class="waiting">
+
+            <h3>Waiting Queue</h3>
+
+            {% if waiting %}
+
+                {% for q in waiting %}
+
+                    <div class="waiting-item">
+                        {{ q.queue_number }}
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <p style="text-align:center;">
+                    No waiting patients
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <div class="footer">
+
+        Please wait until your queue number is displayed before entering.
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -70,6 +70,24 @@ def consultation(queue_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
+    # Update queue status
+    cursor.execute("""
+        UPDATE queue
+        SET queue_status = 'in_consultation'
+        WHERE queue_id = %s
+        AND queue_status = 'waiting'
+    """, (queue_id,))
+
+    # Update appointment status
+    cursor.execute("""
+        UPDATE appointment a
+        JOIN queue q ON a.appointment_id = q.appointment_id
+        SET a.queue_status = 'in_consultation'
+        WHERE q.queue_id = %s
+    """, (queue_id,))
+
+    db.commit()
+
     # patient info
     cursor.execute("""
         SELECT w.queue_id, p.patient_id, p.full_name, p.date_of_birth
@@ -565,4 +583,55 @@ def patient_detail(patient_id):
         temperatures=temperatures,
         role="doctor",
         active_page="patients"
+    )
+
+@doctor_bp.route("/queue-board")
+def queue_board():
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    doctor_id = 1  # Doctor 1 for now
+
+    cursor.execute("""
+        SELECT full_name, room_id
+        FROM medical_staff
+        WHERE staff_id=%s
+    """, (doctor_id,))
+    doctor = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT room_name
+        FROM medical_room
+        WHERE room_id=%s
+    """, (doctor["room_id"],))
+    room = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT queue_number
+        FROM queue
+        WHERE assigned_staff_id=%s
+        AND queue_status='in_consultation'
+        LIMIT 1
+    """, (doctor_id,))
+    current = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT queue_number
+        FROM queue
+        WHERE assigned_staff_id=%s
+        AND queue_status='waiting'
+        ORDER BY queue_id
+    """, (doctor_id,))
+    waiting = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return render_template(
+        "doctor/queue_board.html",
+        doctor=doctor,
+        room=room,
+        current=current,
+        waiting=waiting
     )

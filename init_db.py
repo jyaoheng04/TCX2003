@@ -121,7 +121,7 @@ cursor.execute("""
 
         queue_status ENUM(
             'waiting',
-            'active',
+            'in_consultation',
             'completed',
             'cancelled'
         ) DEFAULT 'waiting',
