@@ -1,2 +1,2 @@
-# environment
 .env
+init_db.py

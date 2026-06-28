@@ -261,10 +261,50 @@ body::before{
 .btn-login.loading .btn-text{display:none;}
 .btn-login.loading .spinner{display:block;}
 .btn-login.loading{display:flex;align-items:center;justify-content:center;}
+
+#toast-container{
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.toast{
+  min-width: 260px;
+  max-width: 320px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: #ef4444;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  animation: slideIn 0.25s ease, fadeOut 0.25s ease 2.7s forwards;
+}
+
+.toast.success{
+  background: #22c55e;
+}
+
+.toast.info{
+  background: #3b82f6;
+}
+
+@keyframes slideIn{
+  from{transform: translateX(20px); opacity: 0;}
+  to{transform: translateX(0); opacity: 1;}
+}
+
+@keyframes fadeOut{
+  to{opacity: 0; transform: translateY(10px);}
+}
 </style>
 </head>
 <body>
-
+<div id="toast-container"></div>
 <div class="shell">
 
   <!-- LEFT -->
@@ -313,9 +353,9 @@ body::before{
     <h1 class="form-title">Welcome<br>to Polyclinic OS.</h1>
     <p class="form-sub">Enter your credentials to access Polyclinic OS.</p>
 
-    <form onsubmit="handleLogin(event)">
+    <form method="POST" action="/login" onsubmit="handleLogin(event)">
       <div class="field">
-        <label>Username or email</label>
+        <label>Email</label>
         <div class="field-wrap">
           <span class="field-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -323,7 +363,7 @@ body::before{
               <circle cx="12" cy="7" r="4"/>
             </svg>
           </span>
-          <input type="text" placeholder="dr.name@clinic.org" autocomplete="username"/>
+          <input type="text" name="email" placeholder="dr.name@clinic.org" autocomplete="username"/>
         </div>
       </div>
 
@@ -336,7 +376,7 @@ body::before{
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </span>
-          <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password"/>
+          <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password" name="password"/>
           <button type="button" class="toggle-pw" onclick="togglePw()" aria-label="Show password">
             <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -373,7 +413,8 @@ body::before{
     </button>
 
     <div class="form-footer">
-      Protected by 256-bit TLS encryption &middot; <a href="#">Privacy Policy</a> &middot; <a href="#">Help</a>
+      Don't have an account?
+      <a href="/register">Create account</a>
     </div>
   </div>
 
@@ -392,11 +433,35 @@ function togglePw(){
   }
 }
 
+function showToast(message, type = "error"){
+  const container = document.getElementById("toast-container");
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
 function handleLogin(e){
   e.preventDefault();
-  const btn=document.getElementById('loginBtn');
+
+  const btn = document.getElementById('loginBtn');
   btn.classList.add('loading');
-  setTimeout(()=>btn.classList.remove('loading'),2200);
+
+  setTimeout(() => {
+    e.target.submit(); // 👈 manually submit form to Flask
+  }, 1000); // adjust delay for animation
+}
+
+const flashMessage = "{{ get_flashed_messages() | join(' ') }}";
+
+if (flashMessage && flashMessage.trim() !== "") {
+  showToast(flashMessage, "error");
 }
 </script>
 </body>

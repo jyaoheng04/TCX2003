@@ -130,7 +130,19 @@
 
 /* FORM CARD (glass SaaS style) */
 .form-card {
-    max-width: 900px;
+    flex: 3;
+    max-width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06);
+}
+
+.patient-card {
+    flex: 1;
+    max-width: 100%;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid #e2e8f0;
@@ -142,6 +154,25 @@
 /* GRID LAYOUT */
 .grid {
     display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding:10px;
+}
+.bp-grid {
+    display: grid;
+    grid-template-columns: 4fr 0.5fr 4fr;
+    gap: 16px
+}
+
+.patient-grid{
+    display: grid;
+    grid-template-columns: 4fr 0.5fr 4fr;
+    gap: 16px;
+    padding:10px;
+}
+
+.flex {
+    display: flex;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
 }
@@ -160,6 +191,11 @@
     letter-spacing: 0.4px;
     text-transform: uppercase;
 }
+
+span {
+  text-align: center;
+}
+
 
 /* INPUTS */
 input,
@@ -216,9 +252,82 @@ textarea {
     transform: translateY(-1px);
 }
 
+.rx-row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.rx-row input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+.rx-row input:focus {
+    border-color: #0ea5e9;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+}
+
+.grey-row {
+    opacity: 0.4;
+    filter: grayscale(1);
+    background-color: grayscale(1);
+    
+}
+
+.grey-row:hover {
+    background: transparent !important;
+    opacity: 0.4;
+}
+
+/*For Popup*/
+.modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.modal-card{
+    background:#fff;
+    width:700px;
+    max-width:90%;
+    max-height:85vh;
+    overflow-y:auto;
+    border-radius:12px;
+    padding:20px;
+}
+
+.result-section{
+    margin-top:16px;
+}
+
+.result-section h4{
+    margin-bottom:8px;
+}
+
+.result-row{
+    display:flex;
+    justify-content:space-between;
+    padding:8px;
+    border-bottom:1px solid #eee;
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
     .grid {
         grid-template-columns: 1fr;
     }
 }
+
+

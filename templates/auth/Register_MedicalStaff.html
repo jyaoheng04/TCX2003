@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Polyclinic OS — Patient Registration</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --blue-dark:#0f2d6b;
+  --blue:#1a4fad;
+  --blue-mid:#2563eb;
+  --blue-light:#dbeafe;
+  --teal:#0d9488;
+  --white:#ffffff;
+  --off:#f4f7fd;
+  --muted:#64748b;
+  --text:#0f172a;
+  --border:#e2e8f0;
+  --red:#ef4444;
+  --green:#22c55e;
+}
+
+body{
+  font-family:"DM Sans",sans-serif;
+  background:var(--off);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 10% 20%, rgba(37,99,235,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 90% 80%, rgba(13,148,136,0.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+/* ====== SHELL ====== */
+.shell{
+  display:flex;
+  width:940px;
+  min-height:640px;
+  background:var(--white);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:0 24px 80px rgba(15,45,107,0.14), 0 2px 8px rgba(15,45,107,0.06);
+  position:relative;
+  animation:rise 0.55s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+@keyframes rise{
+  from{opacity:0;transform:translateY(28px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ====== LEFT PANEL ====== */
+.visual{
+  flex:0 0 420px;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:40px 36px 36px;
+  overflow:hidden;
+  background:linear-gradient(160deg,#0a1e50 0%,#0f2d6b 50%,#1a4fad 100%);
+}
+
+.visual::before{
+  content:"";
+  position:absolute;
+  width:380px;height:380px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,0.08);
+  top:-80px;right:-120px;
+  pointer-events:none;
+}
+.visual::after{
+  content:"";
+  position:absolute;
+  width:260px;height:260px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,0.05);
+  bottom:-60px;left:-60px;
+  pointer-events:none;
+}
+
+.brand{position:relative;z-index:2;}
+.brand-mark{
+  display:flex;align-items:center;gap:10px;margin-bottom:8px;
+}
+.brand-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.brand-icon svg{width:20px;height:20px;}
+.brand-name{
+  font-family:"DM Serif Display",serif;
+  font-size:18px;color:#fff;letter-spacing:0.01em;
+}
+.brand-sub{font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:0.03em;}
+
+/* steps list */
+.steps{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+.steps-heading{
+  font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+  color:rgba(255,255,255,0.45);margin-bottom:18px;
+}
+.step-item{
+  display:flex;gap:14px;align-items:flex-start;
+  padding-bottom:20px;
+  position:relative;
+}
+.step-item:not(:last-child)::before{
+  content:"";
+  position:absolute;
+  left:13px;top:28px;
+  width:1px;height:calc(100% - 12px);
+  background:rgba(255,255,255,0.12);
+}
+.step-num{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;
+  flex-shrink:0;margin-top:1px;
+  position:relative;z-index:1;
+}
+.step-num.active{
+  background:rgba(255,255,255,0.95);
+  color:var(--blue);
+}
+.step-num.done{
+  background:rgba(255,255,255,0.18);
+  color:rgba(255,255,255,0.9);
+}
+.step-num.upcoming{
+  background:rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.4);
+}
+.step-text .step-label{
+  font-size:13px;font-weight:500;
+  color:rgba(255,255,255,0.9);
+  margin-bottom:2px;
+}
+.step-text .step-desc{
+  font-size:11px;color:rgba(255,255,255,0.45);
+}
+.step-text.dim .step-label{color:rgba(255,255,255,0.4);}
+.step-text.dim .step-desc{color:rgba(255,255,255,0.22);}
+
+/* bottom stats */
+.stats{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.pill{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,1);
+  border-radius:50px;
+  padding:8px 16px;
+  width:fit-content;
+  animation:fadein 0.6s ease both;
+}
+.pill:nth-child(2){animation-delay:0.1s;margin-left:24px;}
+.pill:nth-child(3){animation-delay:0.2s;margin-left:48px;}
+@keyframes fadein{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:none;}}
+
+.pill-dot{width:8px;height:8px;border-radius:50%;}
+.pill-dot.green{background:#34d399;}
+.pill-dot.amber{background:#fbbf24;}
+.pill-dot.blue{background:#60a5fa;}
+.pill-label{font-size:12px;color:#1e3a8a;font-weight:500;}
+.pill-val{font-size:13px;font-weight:700;color:#0f172a;margin-left:auto;padding-left:12px;}
+
+/* ====== RIGHT PANEL ====== */
+.form-panel{
+  flex:1;
+  padding:40px 52px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  overflow-y:auto;
+}
+
+.form-eyebrow{
+  font-size:11px;font-weight:600;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--blue-mid);
+  margin-bottom:10px;
+}
+.form-title{
+  font-family:"DM Serif Display",serif;
+  font-size:28px;color:var(--text);
+  line-height:1.15;margin-bottom:6px;
+}
+.form-sub{font-size:14px;color:var(--muted);margin-bottom:24px;}
+
+/* two-col row */
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.field{margin-bottom:14px;position:relative;}
+.field label{
+  display:block;font-size:12px;font-weight:500;
+  color:var(--text);margin-bottom:6px;letter-spacing:0.02em;
+}
+.field-wrap{position:relative;}
+.field-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:#94a3b8;pointer-events:none;
+}
+.field-icon svg{width:16px;height:16px;display:block;}
+.field input{
+  width:100%;padding:12px 14px 12px 42px;
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  font-family:"DM Sans",sans-serif;
+  font-size:14px;color:var(--text);
+  background:#fff;
+  transition:border-color 0.18s,box-shadow 0.18s;
+  outline:none;
+  appearance:none;
+}
+.field input:focus{
+  border-color:var(--blue-mid);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+}
+.field input::placeholder{color:#b0bac6;}
+.field input.valid{border-color:#22c55e;}
+.field input.invalid{border-color:#ef4444;}
+
+.field-hint{
+  font-size:11px;color:var(--muted);margin-top:5px;
+  display:flex;align-items:center;gap:5px;
+}
+.field-hint.error{color:var(--red);}
+.field-hint.success{color:var(--green);}
+
+/* select dropdown */
+
+.field select{
+  width:100%;
+  padding:12px 14px 12px 14px;
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  font-family:"DM Sans",sans-serif;
+  font-size:14px;
+  color:var(--text);
+  background-image:
+    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+    linear-gradient(135deg, #94a3b8 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+
+  background-position:
+    calc(100% - 18px) calc(1em + 2px),
+    calc(100% - 13px) calc(1em + 2px),
+    100% 0;
+
+  background-size:5px 5px, 5px 5px, 2.5em 2.5em;
+  background-repeat:no-repeat;
+  outline:none;
+  cursor:pointer;
+
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+
+  transition:border-color 0.18s, box-shadow 0.18s;
+}
+
+/* focus state (same as input) */
+.field select:focus{
+  border-color:var(--blue-mid);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+}
+
+/* disabled/empty style hint */
+.field select:invalid{
+  color:#94a3b8;
+}
+
+/* optional: hover effect */
+.field select:hover{
+  border-color:#cbd5e1;
+}
+
+.toggle-pw{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;
+  display:flex;align-items:center;
+}
+.toggle-pw svg{width:16px;height:16px;}
+
+/* password strength */
+.pw-strength{margin-top:8px;}
+.pw-bars{display:flex;gap:4px;margin-bottom:5px;}
+.pw-bar{
+  height:3px;flex:1;border-radius:4px;
+  background:var(--border);
+  transition:background 0.25s;
+}
+.pw-bar.weak{background:#ef4444;}
+.pw-bar.fair{background:#f59e0b;}
+.pw-bar.good{background:#3b82f6;}
+.pw-bar.strong{background:#22c55e;}
+.pw-label{font-size:11px;color:var(--muted);}
+
+.terms{
+  display:flex;align-items:flex-start;gap:10px;
+  margin:16px 0 20px;cursor:pointer;
+}
+.terms input[type=checkbox]{
+  width:16px;height:16px;accent-color:var(--blue-mid);
+  cursor:pointer;margin-top:2px;flex-shrink:0;
+}
+.terms span{font-size:13px;color:var(--muted);line-height:1.5;}
+.terms a{color:var(--blue-mid);text-decoration:none;font-weight:500;}
+.terms a:hover{text-decoration:underline;}
+
+.btn-register{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--blue-mid) 0%,var(--blue) 100%);
+  border:none;border-radius:12px;
+  color:#fff;font-family:"DM Sans",sans-serif;
+  font-size:15px;font-weight:600;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:transform 0.15s,box-shadow 0.15s;
+  box-shadow:0 4px 20px rgba(37,99,235,0.32);
+  letter-spacing:0.02em;
+}
+.btn-register:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(37,99,235,0.38);}
+.btn-register:active{transform:translateY(0);}
+.btn-register.loading{display:flex;align-items:center;justify-content:center;}
+.btn-register.loading .btn-text{display:none;}
+.btn-register.loading .spinner{display:block;}
+
+.spinner{
+  display:none;width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,0.35);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin 0.65s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.form-footer{
+  margin-top:18px;text-align:center;
+  font-size:13px;color:var(--muted);
+}
+.form-footer a{color:var(--blue-mid);text-decoration:none;font-weight:500;}
+.form-footer a:hover{text-decoration:underline;}
+
+#toast-container{
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.toast{
+  min-width: 260px;
+  max-width: 320px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: #ef4444;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  animation: slideIn 0.25s ease, fadeOut 0.25s ease 2.7s forwards;
+}
+
+.toast.success{
+  background: #22c55e;
+}
+
+.toast.info{
+  background: #3b82f6;
+}
+
+@keyframes slideIn{
+  from{transform: translateX(20px); opacity: 0;}
+  to{transform: translateX(0); opacity: 1;}
+}
+
+@keyframes fadeOut{
+  to{opacity: 0; transform: translateY(10px);}
+}
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div class="shell">
+
+  <!-- LEFT -->
+  <div class="visual">
+
+    <div class="brand">
+      <div class="brand-mark">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">Polyclinic OS</div>
+          <div class="brand-sub">PATIENT PORTAL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- registration steps -->
+    <div class="steps">
+      <div class="steps-heading">Getting registered</div>
+
+      <div class="step-item">
+        <div class="step-num active" id="step1-num">1</div>
+        <div class="step-text" id="step1-text">
+          <div class="step-label">Your details</div>
+          <div class="step-desc">Name, department &amp; specialisation</div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num upcoming" id="step2-num">2</div>
+        <div class="step-text" id="step2-text">
+          <div class="step-label">Login details</div>
+          <div class="step-desc">Email &amp; password</div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num upcoming" id="step3-num">3</div>
+        <div class="step-text" id="step3-text">
+          <div class="step-label">Verify &amp; you're in</div>
+          <div class="step-desc">Confirm by email to start booking</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- bottom stats -->
+    <div class="stats">
+      <div class="pill">
+        <div class="pill-dot green"></div>
+        <span class="pill-label">System status</span>
+        <span class="pill-val">Online</span>
+      </div>
+      <div class="pill">
+        <div class="pill-dot blue"></div>
+        <span class="pill-label">Patients registered</span>
+        <span class="pill-val">84,200+</span>
+      </div>
+      <div class="pill">
+        <div class="pill-dot amber"></div>
+        <span class="pill-label">Avg. setup time</span>
+        <span class="pill-val">&lt; 2 min</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="form-panel">
+    <p class="form-eyebrow">Polyclinic OS · Staff Registration</p>
+    <h1 class="form-title">Create your<br>staff account.</h1>
+    <p class="form-sub">Register to access the staff portal and manage patient records.</p>
+
+<form method="POST" action="/Register_MedicalStaff" novalidate onsubmit="handleRegister(event)">
+    <!-- Hidden role from invite -->
+    <input type="hidden" name="role" id="role" value="{{ role }}">
+
+      <div class="row-2">
+        <div class="field">
+          <label>First name</label>
+          <div class="field-wrap">
+            <span class="field-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+            <input type="text" placeholder="Jane" autocomplete="given-name" name="fname" id="fname"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Last name</label>
+          <div class="field-wrap">
+            <span class="field-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+            <input type="text" placeholder="Tan" autocomplete="family-name" name="lname" id="lname"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+            <label>Department</label>
+            <select id="department" name="department" onchange="updateSpecialisation(); updateSteps();">
+              <option value="">Select department</option>
+              <option value="general">General Medicine</option>
+              <option value="emergency">Emergency</option>
+              <option value="pediatrics">Pediatrics</option>
+              <option value="surgery">Surgery</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Specialisation</label>
+            <select id="specialisation" name="specialisation" onchange="updateSteps();">
+              <option value="">Select specialisation</option>
+            </select>
+          </div>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <div class="field-wrap">
+          <span class="field-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </span>
+          <input type="email" placeholder="you@email.com" autocomplete="email" id="email" name="email" oninput="validateEmail(this)"/>
+        </div>
+        <div class="field-hint" id="email-hint" style="display:none;"></div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="field-wrap">
+          <span class="field-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <input type="password" id="pw" name="password" placeholder="Min. 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)"/>
+          <button type="button" class="toggle-pw" onclick="togglePw('pw','eye1')" aria-label="Show password">
+            <svg id="eye1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="pw-strength" id="pw-strength" style="display:none;">
+          <div class="pw-bars">
+            <div class="pw-bar" id="bar1"></div>
+            <div class="pw-bar" id="bar2"></div>
+            <div class="pw-bar" id="bar3"></div>
+            <div class="pw-bar" id="bar4"></div>
+          </div>
+          <span class="pw-label" id="pw-label"></span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Confirm password</label>
+        <div class="field-wrap">
+          <span class="field-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <input type="password" id="pw2" name="confirm_password" placeholder="Re-enter password" autocomplete="new-password" oninput="checkMatch()"/>
+          <button type="button" class="toggle-pw" onclick="togglePw('pw2','eye2')" aria-label="Show password">
+            <svg id="eye2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="field-hint" id="match-hint" style="display:none;"></div>
+      </div>
+
+      <label class="terms">
+        <input type="checkbox" id="agree" required/>
+        <span>
+          I confirm that the information provided above is accurate, and that I am authorised to register for a staff account in this system. 
+          I agree to the <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a> governing staff access, data handling, and system usage.
+        </span>
+      </label>
+
+      <button type="submit" class="btn-register" id="regBtn">
+        <span class="btn-text">Create patient account</span>
+        <div class="spinner"></div>
+      </button>
+    </form>
+
+    <div class="form-footer">
+      Already have an account? <a href="/">Sign in</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function getRoleFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("role");
+}
+
+function applyRoleUI() {
+  const role = getRoleFromURL();
+  const roleInput = document.getElementById("role");
+
+  if (!role) return;
+
+  // set hidden input
+  roleInput.value = role;
+
+  // optional UI changes
+  const title = document.querySelector(".form-title");
+  const subtitle = document.querySelector(".form-sub");
+
+  if (role === "nurse") {
+    title.innerHTML = "Create your<br>nurse account.";
+    subtitle.textContent = "Register to access nursing tools and patient care records.";
+  }
+
+  if (role === "doctor") {
+    title.innerHTML = "Create your<br>doctor account.";
+    subtitle.textContent = "Register to access clinical tools and patient records.";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", applyRoleUI);
+
+function togglePw(id, iconId){
+  const pw = document.getElementById(id);
+  const icon = document.getElementById(iconId);
+  if(pw.type === 'password'){
+    pw.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    pw.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+function validateEmail(input){
+  const hint = document.getElementById('email-hint');
+  const val = input.value;
+  if(!val){ hint.style.display='none'; input.className=''; return; }
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  hint.style.display = 'flex';
+  if(ok){
+    hint.className = 'field-hint success';
+    hint.textContent = '✓ Valid email address';
+    input.className = 'valid';
+  } else {
+    hint.className = 'field-hint error';
+    hint.textContent = 'Please enter a valid email address';
+    input.className = 'invalid';
+  }
+}
+
+/* ===== SPECIALISATION LOGIC ===== */
+const specMap = {
+  general: ["Family Medicine", "Chronic Care"],
+  emergency: ["Trauma", "Acute Care"],
+  pediatrics: ["Child Health", "Neonatology"],
+  surgery: ["Orthopedic", "General Surgery"]
+};
+
+function updateSpecialisation(){
+  const dept = document.getElementById("department").value;
+  const spec = document.getElementById("specialisation");
+
+  spec.innerHTML = '<option value="">Select specialisation</option>';
+
+  if(specMap[dept]){
+    specMap[dept].forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.toLowerCase().replace(/\s/g,'_');
+      opt.textContent = s;
+      spec.appendChild(opt);
+    });
+  }
+}
+
+function checkStrength(pw){
+  const bars = [document.getElementById('bar1'),document.getElementById('bar2'),document.getElementById('bar3'),document.getElementById('bar4')];
+  const label = document.getElementById('pw-label');
+  const wrap = document.getElementById('pw-strength');
+  if(!pw){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  let score = 0;
+  if(pw.length >= 8) score++;
+  if(/[A-Z]/.test(pw)) score++;
+  if(/[0-9]/.test(pw)) score++;
+  if(/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = ['','weak','fair','good','strong'];
+  const labels = ['','Weak','Fair','Good','Strong'];
+  bars.forEach((b,i) => {
+    b.className = 'pw-bar' + (i < score ? ' ' + levels[score] : '');
+  });
+  label.textContent = labels[score];
+  label.style.color = score <= 1 ? '#ef4444' : score === 2 ? '#f59e0b' : score === 3 ? '#3b82f6' : '#22c55e';
+}
+
+function checkMatch(){
+  const pw = document.getElementById('pw').value;
+  const pw2 = document.getElementById('pw2');
+  const hint = document.getElementById('match-hint');
+  if(!pw2.value){ hint.style.display='none'; pw2.className=''; return; }
+  hint.style.display = 'flex';
+  if(pw === pw2.value){
+    hint.className = 'field-hint success';
+    hint.textContent = '✓ Passwords match';
+    pw2.className = 'valid';
+  } else {
+    hint.className = 'field-hint error';
+    hint.textContent = 'Passwords do not match';
+    pw2.className = 'invalid';
+  }
+}
+
+/* ===== Live step progress ===== */
+const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg>';
+
+function setStepState(numId, textId, state, number){
+  const numEl = document.getElementById(numId);
+  const textEl = document.getElementById(textId);
+  numEl.className = 'step-num ' + state;
+  numEl.innerHTML = state === 'done' ? checkIcon : number;
+  textEl.className = 'step-text' + (state === 'upcoming' ? ' dim' : '');
+}
+
+function isStep1Complete(){
+  const fname = document.getElementById('fname').value.trim();
+  const lname = document.getElementById('lname').value.trim();
+  const department = document.getElementById('department').value;
+  const specialisation = document.getElementById('specialisation').value;
+
+  return !!(fname && lname && department && specialisation);
+}
+
+function isStep2Complete(){
+  const email = document.getElementById('email').value;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const pw = document.getElementById('pw').value;
+  const pw2 = document.getElementById('pw2').value;
+  const agree = document.getElementById('agree').checked;
+  return emailOk && pw.length >= 8 && pw === pw2 && agree;
+}
+
+function updateSteps(){
+  const step1Done = isStep1Complete();
+  const step2Done = step1Done && isStep2Complete();
+  if(!step1Done){
+    setStepState('step1-num','step1-text','active','1');
+    setStepState('step2-num','step2-text','upcoming','2');
+    setStepState('step3-num','step3-text','upcoming','3');
+  } else if(!step2Done){
+    setStepState('step1-num','step1-text','done','1');
+    setStepState('step2-num','step2-text','active','2');
+    setStepState('step3-num','step3-text','upcoming','3');
+  } else {
+    setStepState('step1-num','step1-text','done','1');
+    setStepState('step2-num','step2-text','done','2');
+    setStepState('step3-num','step3-text','active','3');
+  }
+}
+
+["fname","lname","department","specialisation","email","pw","pw2","agree"]
+.forEach(id => {
+  document.getElementById(id).addEventListener("input", updateSteps);
+});
+document.getElementById('agree').addEventListener('change', updateSteps);
+updateSteps();
+
+function showToast(message, type = "error"){
+  const container = document.getElementById("toast-container");
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+function handleRegister(e){
+  e.preventDefault();
+
+  const agree = document.getElementById('agree').checked;
+
+  if(!agree){
+    showToast("You must agree to the Terms before continuing", "error");
+    return;
+  }
+
+  if(!isStep1Complete() || !isStep2Complete()){
+    showToast("Please complete all required fields", "error");
+    return;
+  }
+
+  const btn = document.getElementById('regBtn');
+  btn.classList.add('loading');
+
+  // allow UI animation first, then submit
+  setTimeout(() => {
+    btn.classList.remove('loading');
+
+    // IMPORTANT: submit form manually
+    e.target.submit();
+  }, 1200);
+}
+</script>
+</body>
+</html>

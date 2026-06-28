@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultation Queue Board</title>
+
+<meta http-equiv="refresh" content="5">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",Arial,sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:#fff;
+    min-height:100vh;
+}
+
+.header{
+    background:#1e293b;
+    padding:25px 50px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:4px solid #2563eb;
+}
+
+.title h1{
+    font-size:42px;
+    letter-spacing:2px;
+}
+
+.title p{
+    margin-top:8px;
+    color:#cbd5e1;
+    font-size:18px;
+}
+
+.clock{
+    font-size:34px;
+    font-weight:bold;
+    color:#38bdf8;
+}
+
+.container{
+    width:95%;
+    margin:35px auto;
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:30px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 10px 25px rgba(0,0,0,.35);
+}
+
+.now-title{
+    text-align:center;
+    font-size:32px;
+    margin-bottom:30px;
+    color:#f8fafc;
+}
+
+.queue-number{
+
+    text-align:center;
+    font-size:170px;
+    font-weight:800;
+    color:#22c55e;
+    animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+
+    0%{
+        transform:scale(1);
+    }
+
+    50%{
+        transform:scale(1.05);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+
+}
+
+.waiting-title{
+    text-align:center;
+    font-size:30px;
+    margin-bottom:25px;
+}
+
+.waiting-item{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    background:#334155;
+    padding:18px 20px;
+    margin-bottom:15px;
+    border-radius:12px;
+
+    font-size:28px;
+    font-weight:bold;
+}
+
+.position{
+
+    width:45px;
+    height:45px;
+    background:#2563eb;
+    border-radius:50%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.notice{
+
+    margin-top:25px;
+    background:#1d4ed8;
+    padding:20px;
+    border-radius:15px;
+}
+
+.notice h3{
+    margin-bottom:12px;
+}
+
+.notice p{
+    line-height:1.8;
+    font-size:17px;
+}
+
+.footer{
+
+    width:95%;
+    margin:20px auto 40px;
+
+    background:#1e293b;
+    padding:18px;
+
+    border-radius:15px;
+
+    text-align:center;
+
+    color:#cbd5e1;
+    font-size:18px;
+}
+
+.empty{
+
+    text-align:center;
+    color:#94a3b8;
+    margin-top:40px;
+    font-size:22px;
+}
+
+@media(max-width:900px){
+
+.container{
+
+    grid-template-columns:1fr;
+
+}
+
+.queue-number{
+
+    font-size:110px;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+    <div class="title">
+
+        <h1>CONSULTATION QUEUE BOARD</h1>
+
+        <p>
+            {{ doctor.full_name }} |
+            {{ room.room_name }}
+        </p>
+
+    </div>
+
+    <div class="clock" id="clock"></div>
+
+</div>
+
+<div class="container">
+
+    <!-- NOW SERVING -->
+
+    <div class="card">
+
+        <div class="now-title">
+
+            NOW SERVING
+
+        </div>
+
+        {% if current %}
+
+            <div class="queue-number">
+
+                {{ current.queue_number }}
+
+            </div>
+
+        {% else %}
+
+            <div class="queue-number">
+
+                ---
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- WAITING -->
+
+    <div class="card">
+
+        <div class="waiting-title">
+
+            Waiting Queue
+
+        </div>
+
+        {% if waiting %}
+
+            {% for q in waiting %}
+
+                <div class="waiting-item">
+
+                    <div class="position">
+
+                        {{ loop.index }}
+
+                    </div>
+
+                    <div>
+
+                        {{ q.queue_number }}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">
+
+                No waiting patients
+
+            </div>
+
+        {% endif %}
+
+        <div class="notice">
+
+            <h3>Notice</h3>
+
+            <p>
+
+                Queue numbers are <b>not called in numerical order</b>.
+                Patients are called according to their
+                <b>scheduled appointment time</b>.
+                Please wait until your queue number appears under
+                <b>Now Serving</b> before entering the consultation room.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="footer">
+
+    Please remain seated until your queue number is displayed.
+    Thank you for your patience.
+
+</div>
+
+<script>
+
+function updateClock(){
+
+    const now = new Date();
+
+    document.getElementById("clock").innerHTML =
+    now.toLocaleTimeString([],{
+        hour:'2-digit',
+        minute:'2-digit',
+        second:'2-digit'
+    });
+
+}
+
+updateClock();
+
+setInterval(updateClock,1000);
+
+</script>
+
+</body>
+</html>

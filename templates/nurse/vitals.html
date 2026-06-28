@@ -1,0 +1,357 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="doctor-page">
+
+    <div class="title">
+        {{ 'Blood' if lab.test_type == 'blood_test'
+           else 'Urine' if lab.test_type == 'urine_test'
+           else lab.test_type }}
+        Test for {{ lab.full_name }}
+    </div>
+
+    <div class="form-card">
+        <div id="resultBanner"
+            style="display:none;
+                    padding:12px;
+                    margin-bottom:15px;
+                    border-radius:8px;
+                    font-weight:bold;">
+        </div>
+
+        {% if lab.test_type == 'urine_test' %}
+
+        <form method="POST" action="/nurse/lab/save" onsubmit="buildUrineJson()">
+
+            <input type="hidden" name="lab_result_id" value="{{ lab.lab_result_id }}">
+            <input type="hidden" id="urine_json" name="urine_json">
+            <input type="hidden" id="result_status" name="result_status">
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>Color</label>
+                    <select id="color">
+                        <option>Pale Yellow</option>
+                        <option>Yellow</option>
+                        <option>Dark Yellow</option>
+                        <option>Amber</option>
+                        <option>Red</option>
+                        <option>Brown</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Clarity</label>
+                    <select id="clarity">
+                        <option>Clear</option>
+                        <option>Slightly Cloudy</option>
+                        <option>Cloudy</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Specific Gravity</label>
+                    <input type="number" step="0.001" id="specific_gravity" oninput="checkUrineResult()">
+                    <small>Normal: 1.005 - 1.030</small>
+                </div>
+
+                <div class="field">
+                    <label>pH</label>
+                    <input type="number" step="0.1" id="ph" oninput="checkUrineResult()">
+                    <small>Normal: 4.5 - 8.0</small>
+                </div>
+
+                <div class="field">
+                    <label>Protein</label>
+                    <select id="protein">
+                        <option>Negative</option>
+                        <option>Trace</option>
+                        <option>1+</option>
+                        <option>2+</option>
+                        <option>3+</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Glucose</label>
+                    <select id="glucose">
+                        <option>Negative</option>
+                        <option>Trace</option>
+                        <option>Positive</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Ketones</label>
+                    <select id="ketones">
+                        <option>Negative</option>
+                        <option>Trace</option>
+                        <option>Positive</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Blood</label>
+                    <select id="blood">
+                        <option>Negative</option>
+                        <option>Trace</option>
+                        <option>Positive</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Nitrites</label>
+                    <select id="nitrites">
+                        <option>Negative</option>
+                        <option>Positive</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Leukocyte Esterase</label>
+                    <select id="leukocyte">
+                        <option>Negative</option>
+                        <option>Positive</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Bilirubin</label>
+                    <select id="bilirubin">
+                        <option>Negative</option>
+                        <option>Positive</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>RBC (cells/HPF)</label>
+                    <input type="number" id="rbc" oninput="checkUrineResult()">
+                    <small>Normal: 0 - 5</small>
+                </div>
+
+                <div class="field">
+                    <label>WBC (cells/HPF)</label>
+                    <input type="number" id="wbc"oninput="checkUrineResult()">
+                    <small>Normal: 0 - 5</small>
+                </div>
+
+                <div class="field">
+                    <label>Bacteria</label>
+                    <select id="bacteria">
+                        <option>None</option>
+                        <option>Few</option>
+                        <option>Moderate</option>
+                        <option>Many</option>
+                    </select>
+                </div>
+
+            </div>
+
+
+            <div class="actions">
+                <button class="btn-primary" type="submit">
+                    Save Urine Test
+                </button>
+            </div>
+
+        </form>
+
+        {% elif lab.test_type == 'blood_test' %}
+
+        <form method="POST" action="/nurse/lab/save" onsubmit="buildBloodJson()">
+
+            <input type="hidden" name="lab_result_id" value="{{ lab.lab_result_id }}">
+            <input type="hidden" id="blood_json" name="blood_json">
+            <input type="hidden" id="result_status" name="result_status">
+
+            <div class="grid">
+                <div><b>Full Blood Count</b></div>
+                <div></div>
+                <div class="field">
+                    <label>White Blood Cell Count (WBC)</label>
+                    <input type="number" step="0.1" id="wbc" oninput="checkBloodResult()">
+                    <small>Normal: 4.0 - 11.0 ×10⁹/L</small>
+                </div>
+
+                <div class="field">
+                    <label>Hemoglobin (Hb)</label>
+                    <input type="number" step="0.1" id="hb" oninput="checkBloodResult()">
+                    <small>Female: 12-16 | Male: 14-18 g/dL</small>
+                </div>
+
+                <div class="field">
+                    <label>Platelets</label>
+                    <input type="number" step="1" id="platelets" oninput="checkBloodResult()">
+                    <small>Normal: 140 - 440 ×10⁹/L</small>
+                </div>
+                <div></div>
+                <div><b>Lipid</b></div>
+                <div></div>
+                <div class="field">
+                    <label>Total Cholesterol</label>
+                    <input type="number" step="0.1" id="cholesterol" oninput="checkBloodResult()">
+                    <small>Normal: &lt; 200 mg/dL</small>
+                </div>
+
+                <div class="field">
+                    <label>Triglycerides</label>
+                    <input type="number" step="0.1" id="triglycerides" oninput="checkBloodResult()">
+                    <small>Normal: &lt; 150 mg/dL</small>
+                </div>
+
+                <div><b>Metabolic</b></div>
+                <div></div>
+                <div class="field">
+                    <label>Fasting Blood Glucose</label>
+                    <input type="number" step="0.1" id="glucose" oninput="checkBloodResult()">
+                    <small>Normal: 74 - 106 mg/dL</small>
+                </div>
+
+                <div class="field">
+                    <label>Creatinine</label>
+                    <input type="number" step="0.1" id="creatinine" oninput="checkBloodResult()">
+                    <small>Normal: 0.6 - 1.2 mg/dL</small>
+                </div>
+
+            </div>
+
+
+            <div class="actions">
+                <button class="btn-primary" type="submit">
+                    Save Blood Test
+                </button>
+            </div>
+
+        </form>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<script>
+function buildBloodJson() {
+    const result = {
+        full_blood_count: {
+            wbc: document.getElementById("wbc").value,
+            hemoglobin: document.getElementById("hb").value,
+            platelets: document.getElementById("platelets").value
+        },
+        lipid_panel: {
+            total_cholesterol: document.getElementById("cholesterol").value,
+            triglycerides: document.getElementById("triglycerides").value
+        },
+        metabolic_panel: {
+            fasting_glucose: document.getElementById("glucose").value,
+            creatinine: document.getElementById("creatinine").value
+        }
+    };
+    document.getElementById("blood_json").value = JSON.stringify(result);
+    document.getElementById("result_status").value = getBloodStatus();
+}
+
+function buildUrineJson() {
+    const result = {
+        physical: {
+            color: document.getElementById("color").value,
+            clarity: document.getElementById("clarity").value,
+            specific_gravity: document.getElementById("specific_gravity").value
+        },
+        chemical: {
+            ph: document.getElementById("ph").value,
+            protein: document.getElementById("protein").value,
+            glucose: document.getElementById("glucose").value,
+            ketones: document.getElementById("ketones").value,
+            blood: document.getElementById("blood").value,
+            nitrites: document.getElementById("nitrites").value,
+            leukocyte_esterase: document.getElementById("leukocyte").value,
+            bilirubin: document.getElementById("bilirubin").value
+        },
+        microscopic: {
+            rbc: document.getElementById("rbc").value,
+            wbc: document.getElementById("wbc").value,
+            bacteria: document.getElementById("bacteria").value
+        }
+    };
+    document.getElementById("urine_json").value = JSON.stringify(result);
+    document.getElementById("result_status").value = getUrineStatus();
+}
+
+function getBloodStatus() {
+    const wbc         = parseFloat(document.getElementById("wbc").value);
+    const hb          = parseFloat(document.getElementById("hb").value);
+    const platelets   = parseFloat(document.getElementById("platelets").value);
+    const cholesterol = parseFloat(document.getElementById("cholesterol").value);
+    const triglycerides = parseFloat(document.getElementById("triglycerides").value);
+    const glucose     = parseFloat(document.getElementById("glucose").value);
+    const creatinine  = parseFloat(document.getElementById("creatinine").value);
+
+    if (!isNaN(wbc)          && (wbc < 4 || wbc > 11))               return "abnormal";
+    if (!isNaN(hb)           && (hb < 12 || hb > 18))                return "abnormal";
+    if (!isNaN(platelets)    && (platelets < 140 || platelets > 440)) return "abnormal";
+    if (!isNaN(cholesterol)  && cholesterol >= 200)                   return "abnormal";
+    if (!isNaN(triglycerides)&& triglycerides >= 150)                 return "abnormal";
+    if (!isNaN(glucose)      && (glucose < 74 || glucose > 106))      return "abnormal";
+    if (!isNaN(creatinine)   && (creatinine < 0.6 || creatinine > 1.2)) return "abnormal";
+
+    return "normal";
+}
+
+function getUrineStatus() {
+    const specificGravity = parseFloat(document.getElementById("specific_gravity").value);
+    const ph              = parseFloat(document.getElementById("ph").value);
+    const protein         = document.getElementById("protein").value;
+    const glucose         = document.getElementById("glucose").value;
+    const ketones         = document.getElementById("ketones").value;
+    const blood           = document.getElementById("blood").value;
+    const nitrites        = document.getElementById("nitrites").value;
+    const leukocyte       = document.getElementById("leukocyte").value;
+    const bilirubin       = document.getElementById("bilirubin").value;
+    const rbc             = parseInt(document.getElementById("rbc").value || 0);
+    const wbc             = parseInt(document.getElementById("wbc").value || 0);
+    const bacteria        = document.getElementById("bacteria").value;
+
+    if (!isNaN(specificGravity) && (specificGravity < 1.005 || specificGravity > 1.030)) return "abnormal";
+    if (!isNaN(ph)              && (ph < 4.5 || ph > 8.0))                               return "abnormal";
+    if (protein   !== "Negative") return "abnormal";
+    if (glucose   !== "Negative") return "abnormal";
+    if (ketones   !== "Negative") return "abnormal";
+    if (blood     !== "Negative") return "abnormal";
+    if (nitrites  !== "Negative") return "abnormal";
+    if (leukocyte !== "Negative") return "abnormal";
+    if (bilirubin !== "Negative") return "abnormal";
+    if (rbc > 5)                  return "abnormal";
+    if (wbc > 5)                  return "abnormal";
+    if (bacteria !== "None" && bacteria !== "Few") return "abnormal";
+
+    return "normal";
+}
+
+function checkBloodResult() {
+    updateResultBanner(getBloodStatus());
+}
+
+function checkUrineResult() {
+    updateResultBanner(getUrineStatus());
+}
+
+function updateResultBanner(status) {
+    const banner = document.getElementById("resultBanner");
+    if (status === "normal") {
+        banner.style.display = "block";
+        banner.style.backgroundColor = "#dcfce7";
+        banner.style.color = "#166534";
+        banner.textContent = "✓ Results currently appear NORMAL";
+    } else {
+        banner.style.display = "block";
+        banner.style.backgroundColor = "#fee2e2";
+        banner.style.color = "#991b1b";
+        banner.textContent = "⚠ Results currently appear ABNORMAL";
+    }
+}
+</script>
+
+{% endblock %}

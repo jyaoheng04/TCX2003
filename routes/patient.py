@@ -236,23 +236,99 @@ def create():
         appointment_id = cursor.lastrowid
 
         # ======================
-        # INSERT CONSULTATION
+        # GENERATE QUEUE NUMBER
+        # ======================
+
+        prefix = "C" if appointment_type == "consultation" else "L"
+
+        cursor.execute("""
+            SELECT queue_number
+            FROM queue
+            WHERE queue_number LIKE %s
+            ORDER BY queue_id DESC
+            LIMIT 1
+        """, (prefix + "%",))
+
+        last = cursor.fetchone()
+
+        if last is None:
+            next_number = 1
+        else:
+            last_num = int(last["queue_number"][1:])
+            next_number = last_num + 1
+
+        queue_number = f"{prefix}{next_number:03d}"
+
+        # ======================
+        # GET ROOM ID
+        # ======================
+
+        if appointment_type == "consultation":
+
+            cursor.execute("""
+                SELECT room_id
+                FROM medical_staff
+                WHERE staff_id = %s
+            """, (doctor_id,))
+
+            room_id = cursor.fetchone()["room_id"]
+
+        else:
+            cursor.execute("""
+                SELECT room_id
+                FROM medical_room
+                WHERE room_type = 'laboratory'
+                ORDER BY RAND()
+                LIMIT 1
+            """)
+
+            room_id = cursor.fetchone()["room_id"]
+
+        # ======================
+        # INSERT INTO QUEUE
         # ======================
         cursor.execute("""
-            INSERT INTO consultation
+            INSERT INTO queue
             (
                 appointment_id,
                 patient_id,
-                staff_id,
-                visit_type,
-                service_type,
-                consultation_time
+                assigned_staff_id,
+                room_id,
+                queue_number,
+                queue_status
             )
             VALUES (%s, %s, %s, %s, %s, %s)
         """, (
             appointment_id,
             patient_id,
             doctor_id if appointment_type == "consultation" else None,
+            room_id,
+            queue_number,
+            "waiting"
+        ))
+
+        queue_id = cursor.lastrowid
+        
+        # ======================
+        # INSERT CONSULTATION
+        # ======================
+        cursor.execute("""
+        INSERT INTO consultation
+        (
+            appointment_id,
+            patient_id,
+            staff_id,
+            queue_id,
+            visit_type,
+            service_type,
+            consultation_time
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            appointment_id,
+            patient_id,
+            doctor_id if appointment_type == "consultation" else None,
+            queue_id,
             'appointment',
             appointment_type,
             appointment_datetime
@@ -282,6 +358,7 @@ def create():
                 None,
                 None
             ))
+
 
         db.commit()
 
@@ -582,7 +659,7 @@ def profile():
             p.nric,
             p.phone,
             p.date_of_birth,
-            u.username
+            u.email
         FROM patient p
         JOIN user_account u ON p.user_id = u.user_id
         WHERE p.patient_id = %s
@@ -1185,7 +1262,7 @@ def create_multi():
                         result_details, result_date, result_status
                     ) VALUES (%s, %s, NULL, NULL, NULL)
                 """, (consultation_id, t))
-
+            
         db.commit()
         cursor.close()
         db.close()

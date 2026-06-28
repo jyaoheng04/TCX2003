@@ -1,29 +1,87 @@
-{% extends 'layout/base.html' %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/nurse.css') }}">
-{% endblock %}
+{% extends "layout/base.html" %}
 
 {% block content %}
 
-<h2 class="dashboard-title">Nurse Dashboard</h2>
+<div class="doctor-page">
 
-<div class="dashboard-grid">
+    <div class="doctor-title">Nurse Queue</div>
 
-    <a href="/nurse/patients" class="dashboard-card">
-        <h3>👥 Patients</h3>
-        <p>Monitor assigned patients</p>
-    </a>
+    <div class="doctor-table-card">
+        <h3 style="margin-bottom:10px;">Upcoming Patient</h3>
 
-    <a href="/nurse/wards" class="dashboard-card">
-        <h3>🏥 Wards</h3>
-        <p>Ward management overview</p>
-    </a>
+        <table class="doctor-table">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
 
-    <a href="/nurse/medication" class="dashboard-card">
-        <h3>💊 Medication</h3>
-        <p>Administer treatments</p>
-    </a>
+            <tbody>
+                {% if next_patient %}
+                <tr>
+                    <td class="patient-name">{{ next_patient.full_name }}</td>
+                    <td>{{ next_patient.priority_status }}</td>
+                    <td>{{ next_patient.queue_status }}</td>
+                    <td>
+                        {% if next_patient.queue_status == 'pending' %}
+                        <a class="btn-edit" href="/nurse/lab/{{ next_patient.lab_result_id }}">
+                            Take Vitals
+                        </a>
+                        {% else %}
+                        <span class="btn-delete">Done</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">No patients in queue.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <br>
+
+    <!-- FULL QUEUE -->
+    <div class="doctor-table-card">
+
+        <table class="doctor-table">
+
+            <tbody>
+                {% for q in queue %}
+                <tr class="{% if q.queue_status|lower in ('completed','waiting','in_consultation') %}grey-row{% endif %}">
+
+                    <td class="patient-name">{{ q.full_name }}</td>
+                    <td>{{ q.priority_status }}</td>
+                    <td>{{ q.queue_status }}</td>
+
+                    <td>
+                        {% if q.queue_status == 'pending' %}
+                        <a class="btn-edit" href="/nurse/lab/{{ q.lab_result_id }}">
+                            Take Vitals
+                        </a>
+
+                        {% elif q.queue_status in ('waiting', 'in_consultation') %}
+                        <span class="btn-wait">
+                            Waiting on Doctor
+                        </span>
+
+                        {% else %}
+                        <span class="btn-delete">Done</span>
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 

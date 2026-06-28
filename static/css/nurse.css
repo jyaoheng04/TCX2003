@@ -1,286 +1,312 @@
-/* ===================== NURSE PATIENT TASK BOARD ===================== */
+/* PAGE */
+.doctor-page {
+    padding: 28px;
+    background: radial-gradient(circle at top, #f8fafc, #ffffff);
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
 
-.nurse-title {
+/* TITLE */
+.doctor-title {
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 18px;
     color: #0f172a;
-}
-
-/* GRID */
-.nurse-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-}
-
-/* CARD */
-.nurse-card {
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px);
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    transition: 0.2s ease;
-}
-
-.nurse-card:hover {
-    transform: translateY(-4px);
-}
-
-/* HEADER */
-.nurse-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.nurse-patient-name {
-    margin: 0;
-    color: #0ea5e9;
-}
-
-/* STATUS BADGES */
-.nurse-status {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 999px;
-    text-transform: uppercase;
-}
-
-.nurse-status--done {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.nurse-status--pending {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.nurse-status--progress {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-/* TEXT */
-.nurse-card p {
-    margin: 6px 0;
-    font-size: 14px;
-    color: #334155;
-}
-
-/* TAGS */
-.nurse-meta {
-    margin-top: 10px;
-}
-
-.nurse-tag {
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-weight: 600;
-}
-
-.nurse-tag--low {
-    background: #f1f5f9;
-    color: #475569;
-}
-
-.nurse-tag--medium {
-    background: #e0f2fe;
-    color: #0369a1;
-}
-
-.nurse-tag--high {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-/* ===================== NURSE MEDICATION DISPENSING SYSTEM ===================== */
-
-.nurse-med-title {
-    font-size: 24px;
-    font-weight: 700;
     margin-bottom: 20px;
-    color: #0f172a;
 }
 
-.nurse-med-container {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-/* CARD */
-.nurse-med-card {
-    background: rgba(255,255,255,0.9);
+/* OUTER CARD WRAPPER (this is the “fake card”) */
+.doctor-table-card {
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
     border: 1px solid #e2e8f0;
     border-radius: 18px;
-    padding: 20px;
+    padding: 10px;
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+/* TABLE */
+.doctor-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
 /* HEADER */
-.nurse-med-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
+.doctor-table thead {
+    background: #f1f5f9;
 }
 
-.nurse-med-patient {
-    margin: 0;
-    font-size: 18px;
-    color: #0ea5e9;
-}
-
-.nurse-med-doctor {
-    margin: 4px 0 0;
+.doctor-table th {
+    text-align: left;
     font-size: 13px;
-    color: #64748b;
-}
-
-/* STATUS */
-.nurse-med-status {
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 11px;
+    padding: 14px 12px;
+    color: #334155;
     font-weight: 700;
-    text-transform: uppercase;
-}
-
-.nurse-med-status--ready {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.nurse-med-status--progress {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-/* BODY GRID */
-.nurse-med-body,
-.nurse-med-extra {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-/* BOX */
-.nurse-med-box {
-    background: #f8fafc;
-    padding: 12px;
-    border-radius: 12px;
-}
-
-.nurse-med-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
     letter-spacing: 0.4px;
 }
 
-.nurse-med-box p {
-    margin: 6px 0 0;
+/* ROWS */
+.doctor-table td {
+    padding: 14px 12px;
     font-size: 14px;
-    color: #0f172a;
-}
-
-/* SIGN OFF */
-.nurse-med-signoff {
-    border-top: 1px solid #e2e8f0;
-    padding-top: 12px;
-    margin-top: 10px;
-    font-size: 13px;
     color: #334155;
+    border-top: 1px solid #eef2f7;
 }
 
-/* ACTIONS */
-.nurse-med-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 14px;
-}
-
-/* BUTTONS */
-.btn-collect,
-.btn-prepare,
-.btn-view {
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
+/* hover row effect (very subtle modern UI style) */
+.doctor-table tbody tr {
     transition: 0.2s ease;
 }
 
-.btn-collect {
+.doctor-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* PATIENT NAME highlight */
+.patient-name {
+    font-weight: 700;
+    color: #0ea5e9;
+}
+
+/* ACTIONS */
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* BUTTONS */
+.btn-edit,
+.btn-delete,
+.btn-wait {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+/* EDIT */
+.btn-edit {
     background: #0ea5e9;
     color: white;
 }
 
-.btn-collect:hover {
+.btn-edit:hover {
     background: #0284c7;
 }
 
-.btn-prepare {
-    background: #f59e0b;
+/* DELETE */
+.btn-delete {
+    background: transparent;
+    border: 1px solid #fecaca;
+    color: #ef4444;
+}
+
+.btn-wait {
+    background: #ef4444;
+    border: 1px solid #fecaca;
     color: white;
 }
 
-.btn-prepare:hover {
-    background: #d97706;
+/* =========================================================
+   CREATE CONSULTATION PAGE
+   ========================================================= */
+
+/* PAGE */
+.doctor-page {
+    padding: 28px;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #f8fafc, #ffffff);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
-.btn-view {
-    background: #f1f5f9;
-    color: #334155;
-}
-
-.btn-view:hover {
-    background: #e2e8f0;
-}
-
-/* ===================== CLINIC OPERATIONS ===================== */
-
-.nurse-section-title {
-    font-size: 16px;
+/* TITLE */
+.title {
+    font-size: 24px;
     font-weight: 700;
-    color: #0ea5e9;
-    margin-bottom: 10px;
+    color: #0f172a;
+    margin-bottom: 18px;
 }
 
-.nurse-grid {
+/* FORM CARD (glass SaaS style) */
+.form-card {
+    max-width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06);
+}
+
+/* GRID LAYOUT */
+.grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
 }
 
-.nurse-card {
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px);
+/* FIELD GROUP */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+/* INPUTS */
+input,
+select,
+textarea {
+    padding: 10px 12px;
+    border-radius: 10px;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    background: #f8fafc;
+    font-size: 14px;
+    outline: none;
     transition: 0.2s ease;
 }
 
-.nurse-card:hover {
-    transform: translateY(-4px);
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #0ea5e9;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
 }
 
-.nurse-card p {
-    margin: 8px 0;
+/* TEXTAREA FULL WIDTH */
+.full {
+    margin-top: 14px;
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* ACTIONS */
+.actions {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* BUTTON */
+.btn-primary {
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #0284c7;
+    transform: translateY(-1px);
+}
+
+.rx-row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.rx-row input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
     font-size: 14px;
-    color: #334155;
+    transition: 0.2s ease;
+}
+
+.rx-row input:focus {
+    border-color: #0ea5e9;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+}
+
+.grey-row {
+    opacity: 0.4;
+    filter: grayscale(1);
+    background-color: grayscale(1);
+    
+}
+
+.grey-row:hover {
+    background: transparent !important;
+    opacity: 0.4;
+}
+
+.doctor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.doctor-card {
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: 0.2s ease;
+    position: relative;
+}
+
+.doctor-card:hover {
+    transform: translateY(-2px);
+}
+
+.doctor-card input {
+    margin-right: 8px;
+}
+
+.doctor-suggested {
+    border: 2px solid #0ea5e9;
+    background: #ecfeff;
+}
+
+.suggested-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #0ea5e9;
+    color: white;
+    font-size: 10px;
+    padding: 3px 6px;
+    border-radius: 6px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.bp-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.bp-divider {
+    font-weight: 700;
+    color: #64748b;
 }

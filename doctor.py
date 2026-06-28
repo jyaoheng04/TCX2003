@@ -1,12 +1,9 @@
-from flask import Blueprint, render_template, request,session, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for
 import json
 import mysql.connector
 import os
 from dotenv import load_dotenv
 import random
-import json
-import random
-from flask import request, redirect, url_for
 
 load_dotenv()
 
@@ -22,32 +19,6 @@ def get_db():
         port=os.getenv("DB_PORT")
     )
 
-# ======================
-# GET LOGGED IN STAFF
-# ======================
-def get_logged_in_staff():
-
-    user_id = session.get("user_id")
-
-    if not user_id:
-        return None
-
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT *
-        FROM medical_staff
-        WHERE user_id = %s
-    """, (user_id,))
-
-    staff = cursor.fetchone()
-
-    cursor.close()
-    db.close()
-
-    return staff
-
 # dashboard (QUEUE)
 @doctor_bp.route("/dashboard")
 def dashboard():
@@ -56,28 +27,19 @@ def dashboard():
     cursor = db.cursor(dictionary=True)
 
     cursor.execute("""
-            SELECT
-                q.queue_id,
-                q.queue_number,
-                q.queue_status,
-                p.full_name,
-                c.consultation_time
-            FROM queue q
-            JOIN patient p
-                ON p.patient_id = q.patient_id
-            JOIN consultation c
-                ON c.queue_id = q.queue_id
-            WHERE c.service_type = 'consultation'
-            ORDER BY
-                CASE
-                    WHEN q.queue_status = 'waiting' THEN 0
-                    WHEN q.queue_status = 'in_consultation' THEN 1
-                    WHEN q.queue_status = 'completed' THEN 2
-                    WHEN q.queue_status = 'cancelled' THEN 3
-                    ELSE 4
-                END,
-                c.consultation_time
-        """)
+        SELECT w.queue_id, p.full_name, w.priority_status, w.queue_status, w.check_in_time
+        FROM walk_in_queue w
+        JOIN patient p ON p.patient_id = w.patient_id
+        ORDER BY
+        CASE 
+            WHEN w.queue_status = 'waiting' AND w.priority_status = 'priority' THEN 0
+            WHEN w.queue_status = 'waiting' THEN 1
+            WHEN w.queue_status = 'pending' THEN 2
+            WHEN w.queue_status = 'in_consultation' THEN 3
+            ELSE 4
+        END,
+        w.check_in_time ASC
+    """)
 
     queue = cursor.fetchall()
 
@@ -96,28 +58,10 @@ def consultation(queue_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    # Update queue status
-    cursor.execute("""
-        UPDATE queue
-        SET queue_status = 'in_consultation'
-        WHERE queue_id = %s
-        AND queue_status = 'waiting'
-    """, (queue_id,))
-
-    # Update appointment status
-    cursor.execute("""
-        UPDATE appointment a
-        JOIN queue q ON a.appointment_id = q.appointment_id
-        SET a.queue_status = 'in_consultation'
-        WHERE q.queue_id = %s
-    """, (queue_id,))
-
-    db.commit()
-
     # patient info
     cursor.execute("""
         SELECT w.queue_id, p.patient_id, p.full_name, p.date_of_birth
-        FROM queue w
+        FROM walk_in_queue w
         JOIN patient p ON p.patient_id = w.patient_id
         WHERE w.queue_id = %s
     """, (queue_id,))
@@ -289,24 +233,16 @@ def save_consultation():
         ))
 
         cursor.execute("""
-            UPDATE queue
+            UPDATE walk_in_queue
             SET queue_status = 'pending'
             WHERE queue_id = %s
         """, (queue_id,))
 
     else:
         cursor.execute("""
-            UPDATE queue
+            UPDATE walk_in_queue
             SET queue_status = 'completed'
             WHERE queue_id = %s
-        """, (queue_id,))
-
-        cursor.execute("""
-            UPDATE appointment a
-            JOIN queue q
-                ON a.appointment_id = q.appointment_id
-            SET a.queue_status = 'completed'
-            WHERE q.queue_id = %s
         """, (queue_id,))
 
     db.commit()
@@ -611,78 +547,4 @@ def patient_detail(patient_id):
         temperatures=temperatures,
         role="doctor",
         active_page="patients"
-    )
-
-@doctor_bp.route("/queue-board")
-def queue_board():
-
-    # ======================
-    # GET LOGGED-IN STAFF
-    # ======================
-    doctor = get_logged_in_staff()
-
-    if not doctor:
-        return redirect("/")
-
-    # Only doctors can access this page
-    if doctor["role"] != "doctor":
-        return redirect("/")
-
-    doctor_id = doctor["staff_id"]
-
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-
-    # ======================
-    # GET CONSULTATION ROOM
-    # ======================
-    cursor.execute("""
-        SELECT room_name
-        FROM medical_room
-        WHERE room_id = %s
-    """, (doctor["room_id"],))
-    room = cursor.fetchone()
-
-    # ======================
-    # CURRENT PATIENT
-    # ======================
-    cursor.execute("""
-        SELECT
-            q.queue_number
-        FROM queue q
-        JOIN appointment a
-            ON q.appointment_id = a.appointment_id
-        WHERE q.assigned_staff_id = %s
-          AND q.queue_status = 'in_consultation'
-          AND DATE(a.appointment_date) = CURDATE()
-        ORDER BY a.appointment_date
-        LIMIT 1
-    """, (doctor_id,))
-    current = cursor.fetchone()
-
-    # ======================
-    # WAITING QUEUE
-    # ======================
-    cursor.execute("""
-        SELECT
-            q.queue_number
-        FROM queue q
-        JOIN appointment a
-            ON q.appointment_id = a.appointment_id
-        WHERE q.assigned_staff_id = %s
-          AND q.queue_status = 'waiting'
-          AND DATE(a.appointment_date) = CURDATE()
-        ORDER BY a.appointment_date, q.queue_id
-    """, (doctor_id,))
-    waiting = cursor.fetchall()
-
-    cursor.close()
-    db.close()
-
-    return render_template(
-        "doctor/queue_board.html",
-        doctor=doctor,
-        room=room,
-        current=current,
-        waiting=waiting
     )
