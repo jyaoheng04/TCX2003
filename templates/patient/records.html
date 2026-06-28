@@ -27,7 +27,6 @@
             </div>
 
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-                <span class="patient-record-status done">Completed</span>
 
                 {% if record.lab_test_type %}
                     {% if record.lab_result_status in (none, "pending") %}
